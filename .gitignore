@@ -1,0 +1,22 @@
+# All data (too large for GitHub — download from Kaggle, see README)
+data/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Jupyter
+.ipynb_checkpoints/
+*_executed.ipynb
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Secrets
+kagoo token
+
+# Local session notes
+SESSION_HANDOFF.md
