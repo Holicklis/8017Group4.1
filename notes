@@ -1,0 +1,27 @@
+1.  We are group 4.1, we work on project 4
+2. list of teammates
+
+Chan	Chak Chung	u3664795@connect.hku.hk
+Hung	Man Kit	u3643841@connect.hku.hk
+Jiang	Hanbo	u3664916@connect.hku.hk
+Lau	Hiu Yu	lauhiuyu@connect.hku.hk
+Leung	Ho Ning	hollishn@connect.hku.hk
+Weng	Youjia	u3637269@connect.hku.hk
+
+3. The project strictly requrie that we follow and use the in the course taught skills.
+We are thinking to preprocess some data, and then use a open source model light weight to do a education chatbot, asnwer with the data we trained. 
+
+4. Datasets (download all four)
+- Alpha Insights US Funds (ETFs + Mutual Funds): https://www.kaggle.com/datasets/willianoliveiragibin/alpha-insights-us-funds
+- Bank Customer Complaints: https://www.kaggle.com/datasets/taeefnajib/bank-customer-complaints
+- Financial Phrasebank (sentiment): https://www.kaggle.com/datasets/ankurzing/sentiment-analysis-for-financial-news
+- Finance Data (stocks): https://www.kaggle.com/datasets/nitindatta/finance-data
+
+5. See project_plan.md for full architecture, models, timeline, and work division.
+6. See SESSION_HANDOFF.md for everything done on Mar 29 session and next steps.
+
+STATUS as of Mar 29:
+- All 8 datasets downloaded (3.3 GB raw)
+- All preprocessing DONE (notebooks/01_preprocessing.ipynb) -> data/processed/ (20 files, 77 MB)
+- LLM: Phi-3.5 Mini via Ollama (install pending, download on R: drive)
+- NEXT: Train classifiers (NB/SVM), regression models, then build chatbot + Streamlit dashboard
