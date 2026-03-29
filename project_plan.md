@@ -77,47 +77,58 @@ Retail investors and financial analysts need quick, data-driven answers about fi
 
 ## 2. Datasets
 
+| # | Dataset | Raw Size | Processed | Used In | Status |
+|---|---------|----------|-----------|---------|--------|
+| 2.1 | Alpha Insights US Funds | 1,978 MB | `etf_clean.csv` (2,116 rows), `mutualfund_clean.csv` (23,382 rows) | NB 01, 03, 04 | **USED** |
+| 2.2 | Bank Customer Complaints | 323 MB (1.47M rows) | `complaints_clean.csv` (200K stratified sample) | NB 01, 02, 04 | **USED** |
+| 2.3 | Financial Phrasebank | 3 MB (4,846 rows) | `phrasebank_clean.csv` (4,846 rows) | NB 01, 02 | **USED** |
+| 2.4 | Finance Data (Survey) | <1 MB (40 rows) | `survey_clean.csv` (40 rows) | NB 01 | **USED** (small) |
+| 2.5 | Financial Q&A 10K | 3 MB (7,000 Q&A pairs) | `qa_clean.csv` (6,997 rows) | NB 01, 05 | **USED** |
+| 2.6 | S&P 500 / ETF / Crypto Prices | 968 MB (~2,766 tickers) | `prices_clean.csv` (6.2M rows, ALL tickers) | NB 01, 03 | **USED** |
+| 2.7 | Financial News 2025 | 2 MB (3,024 articles) | `news_clean.csv` (2,876 rows) | NB 01, app | **USED** |
+| 2.8 | FinSen Financial Sentiment | 26 MB (15,534 articles) | `finsen_clean.csv` (15,534 rows) | NB 01, 02, 04 | **USED** |
+
+**All 8 datasets are actively used in the project.**
+
 ### 2.1 Alpha Insights US Funds (ETFs + Mutual Funds)
 - **Source**: https://www.kaggle.com/datasets/willianoliveiragibin/alpha-insights-us-funds
 - **Contents**: Fund names, categories, expense ratios, returns (YTD, 1yr, 3yr, 5yr, 10yr), fund family, total net assets
-- **Use**: Descriptive analytics, correlation analysis, regression, fund comparison
-- **Files**: `ETFs.csv`, `mutual_funds.csv`
+- **Use**: Descriptive analytics, correlation analysis, regression (NB 03), PCA + K-Means clustering (NB 04), fund explorer dashboard
 
 ### 2.2 Bank Customer Complaints
 - **Source**: https://www.kaggle.com/datasets/taeefnajib/bank-customer-complaints
-- **Contents**: Complaint text, product category, issue type, company, state, date
-- **Use**: Text mining, topic classification (NB/SVM), keyword extraction (TF-IDF)
+- **Contents**: 1.47M complaints with product category, issue type, company, state, date
+- **Use**: 200K stratified sample for topic classification (NB 02: NB/SVM/DT/RF/MLP), association rules (NB 04), LSA topic extraction (NB 04), complaint dashboard
 
 ### 2.3 Financial Phrasebank
 - **Source**: https://www.kaggle.com/datasets/ankurzing/sentiment-analysis-for-financial-news
-- **Contents**: ~4800 finance sentences labeled positive/negative/neutral
-- **Use**: Train and validate sentiment analysis classifier
+- **Contents**: ~4,800 finance sentences labeled positive/negative/neutral
+- **Use**: Train sentiment classifiers (NB 02: NB/SVM/MLP), ROC/AUC evaluation
 
-### 2.4 Finance Data (Stocks)
+### 2.4 Finance Data (Investment Survey)
 - **Source**: https://www.kaggle.com/datasets/nitindatta/finance-data
-- **Contents**: Stock prices, financial ratios, company information
-- **Use**: Stock trend analysis, numerical prediction models
+- **Contents**: 40-row investment survey with categorical responses
+- **Use**: Label encoding demo, categorical data preprocessing (NB 01)
 
-### 2.5 Financial Q&A - 10K (NEW - for chatbot knowledge base)
+### 2.5 Financial Q&A - 10K
 - **Source**: https://www.kaggle.com/datasets/yousefsaeedian/financial-q-and-a-10k
-- **Contents**: Pre-built question-answer pairs extracted from 10-K financial filings
-- **Use**: Directly populate chatbot knowledge base; train Q&A retrieval with TF-IDF + cosine similarity
+- **Contents**: 7,000 Q&A pairs extracted from 10-K financial filings (69 tickers)
+- **Use**: Chatbot knowledge base retrieval via TF-IDF + cosine similarity (NB 05)
 
-### 2.6 S&P 500, ETF, FX & Crypto - Daily Updated (NEW - richer price data)
+### 2.6 S&P 500, ETF, FX & Crypto Prices
 - **Source**: https://www.kaggle.com/datasets/benjaminpo/s-and-p-500-with-dividends-and-splits-daily-updated
-- **Contents**: 8000+ assets, daily OHLCV, dividends, stock splits (data up to 2025)
-- **Use**: Broader stock/ETF universe for trend analysis, prediction models, time series charts
-- **Note**: Large file (>1GB). Can sample top assets by market cap or filter to S&P 500 / popular ETFs.
+- **Contents**: ~2,766 tickers, daily OHLCV, dividends, stock splits
+- **Use**: ALL tickers loaded (6.2M rows). Daily returns, 20/50-day MAs. Stock return prediction (NB 03), price trend charts in dashboard
 
-### 2.7 Financial News Market Events 2025 (NEW - for sentiment & news QA)
+### 2.7 Financial News Market Events 2025
 - **Source**: https://www.kaggle.com/datasets/pratyushpuri/financial-news-market-events-dataset-2025
-- **Contents**: Recent financial news articles with event labels
-- **Use**: Sentiment analysis on real news, news-based Q&A, text classification
+- **Contents**: 3,024 financial news articles with sentiment labels and sectors
+- **Use**: News sentiment distribution in dashboard, headline preprocessing (NB 01)
 
-### Optional / Nice-to-Have
-- **CFPB Consumer Complaints (7M+ rows)**: https://www.consumerfinance.gov/data-research/consumer-complaints -- massive version of 2.2, sample if needed
-- **FinSen Financial Sentiment Dataset**: https://www.kaggle.com/datasets/eaglewhl/finsen-financial-sentiment-dataset -- alternative/supplement to 2.3
-- **Financial Chat Bot Competition**: https://www.kaggle.com/competitions/financial-chat-bot -- reference notebooks and starter code
+### 2.8 FinSen Financial Sentiment
+- **Source**: https://www.kaggle.com/datasets/eaglewhl/finsen-financial-sentiment-dataset
+- **Contents**: 15,534 financial articles with 12 category labels
+- **Use**: Cross-dataset sentiment validation (NB 02), LSA topic extraction (NB 04), TF-IDF category classification
 
 ---
 
