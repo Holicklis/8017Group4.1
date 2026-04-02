@@ -15,9 +15,18 @@ venv/
 .DS_Store
 Thumbs.db
 
-# Secrets
+# Secrets (never commit)
+kaggle.json
 kagoo token
 
 # Local session notes
 SESSION_HANDOFF.md
 notes
+
+# Trained model too large for GitHub (100 MB cap); run notebooks/03_regression.ipynb
+models/fund_return_rf.joblib
+
+# Local pipeline logs
+pipeline.log
+pipeline_*.log
+pipeline_nohup.out

@@ -5,8 +5,8 @@ Streamlit Application (Group 4.1)
 Run: streamlit run app/chatbot_app.py
 """
 
+import logging
 import os
-import json
 import numpy as np
 import pandas as pd
 import plotly.express as px
@@ -25,6 +25,8 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PROCESSED_DIR = os.path.join(BASE_DIR, "data", "processed")
 MODEL_DIR = os.path.join(BASE_DIR, "models")
 
+logger = logging.getLogger(__name__)
+
 stemmer = PorterStemmer()
 stop_words = set(stopwords.words("english"))
 
@@ -38,8 +40,34 @@ def clean_text(text):
 # ---------------------------------------------------------------------------
 # Load data & models (cached)
 # ---------------------------------------------------------------------------
+def _missing_required_paths():
+    """Paths that must exist for load_resources(); used for a clear startup error."""
+    req = [
+        os.path.join(PROCESSED_DIR, "etf_clean.csv"),
+        os.path.join(PROCESSED_DIR, "mutualfund_clean.csv"),
+        os.path.join(PROCESSED_DIR, "complaints_clean.csv"),
+        os.path.join(PROCESSED_DIR, "qa_clean.csv"),
+        os.path.join(PROCESSED_DIR, "prices_clean.csv"),
+        os.path.join(PROCESSED_DIR, "news_clean.csv"),
+        os.path.join(PROCESSED_DIR, "qa_tfidf_vectorizer.joblib"),
+        os.path.join(PROCESSED_DIR, "qa_tfidf_matrix.joblib"),
+        os.path.join(PROCESSED_DIR, "complaints_tfidf.joblib"),
+        os.path.join(PROCESSED_DIR, "complaints_labels.joblib"),
+        os.path.join(PROCESSED_DIR, "phrasebank_label_encoder.joblib"),
+    ]
+    return [p for p in req if not os.path.isfile(p)]
+
+
 @st.cache_resource
 def load_resources():
+    missing = _missing_required_paths()
+    if missing:
+        rel = [os.path.relpath(p, BASE_DIR) for p in missing]
+        raise FileNotFoundError(
+            "Missing required processed data or vectors (run notebooks 01–02 and ensure data/processed/ exists):\n"
+            + "\n".join(f"  - {r}" for r in rel)
+        )
+
     res = {}
     res["etf"] = pd.read_csv(os.path.join(PROCESSED_DIR, "etf_clean.csv"))
     res["mf"] = pd.read_csv(os.path.join(PROCESSED_DIR, "mutualfund_clean.csv"))
@@ -72,6 +100,8 @@ def load_resources():
 # Intent classification
 # ---------------------------------------------------------------------------
 def classify_intent(query, res, threshold=0.15):
+    if not query or not str(query).strip():
+        return "general_qa", 0.0
     if "intent_tfidf" not in res:
         return "general_qa", 0.0
     vec = res["intent_tfidf"].transform([clean_text(query)])
@@ -118,9 +148,12 @@ def module_sentiment(query, res):
 
 
 def module_prediction(query, res):
-    if "fund_return_lr" not in res:
-        return "Prediction model not loaded.", pd.DataFrame(), None
+    """Median profile must match notebook 03 / 05: ETF ∩ mutual fund columns, combined pool."""
+    need = ("fund_return_lr", "fund_return_rf", "fund_return_scaler")
+    if not all(k in res for k in need):
+        return "Prediction models not loaded (need fund_return_lr, fund_return_rf, fund_return_scaler).", pd.DataFrame(), None
     etf = res["etf"]
+    mf = res["mf"]
     feature_cols = [
         "fund_annual_report_net_expense_ratio", "total_net_assets", "fund_yield",
         "fund_return_ytd", "fund_return_3years", "fund_return_5years",
@@ -128,9 +161,25 @@ def module_prediction(query, res):
         "fund_sharpe_ratio_3years", "fund_beta_3years",
         "asset_stocks", "asset_bonds",
     ]
-    available = [c for c in feature_cols if c in etf.columns]
-    median_vals = etf[available].median().values.reshape(1, -1)
-    scaled = res["fund_return_scaler"].transform(median_vals)
+    common = list(set(etf.columns) & set(mf.columns))
+    available = [c for c in feature_cols if c in common]
+    if not available:
+        return "No fund feature columns in common between ETF and mutual fund tables.", pd.DataFrame(), None
+
+    funds_all = pd.concat([etf[common], mf[common]], ignore_index=True)
+    med = funds_all[available].median()
+    median_vals = med.values.reshape(1, -1)
+
+    scaler = res["fund_return_scaler"]
+    if getattr(scaler, "n_features_in_", None) is not None and scaler.n_features_in_ != len(available):
+        return (
+            f"Feature count mismatch (app: {len(available)}, scaler expects {scaler.n_features_in_}). "
+            "Re-run notebook 03_regression after data changes.",
+            pd.DataFrame(),
+            None,
+        )
+
+    scaled = scaler.transform(median_vals)
     pred_lr = res["fund_return_lr"].predict(scaled)[0]
     pred_rf = res["fund_return_rf"].predict(scaled)[0]
     df = pd.DataFrame([{
@@ -151,9 +200,14 @@ def module_price_trend(query, res):
             found = t
             break
     if found is None:
-        found = tickers[0] if len(tickers) > 0 else None
-    if found is None:
-        return "No price data available.", pd.DataFrame(), None
+        if len(tickers) == 0:
+            return "No price data available.", pd.DataFrame(), None
+        return (
+            "No ticker symbol recognized in your message. Try a query that includes a valid symbol "
+            "(e.g. **AAPL** or **MSFT**), or open **Price Charts** and pick tickers from the list.",
+            pd.DataFrame(),
+            None,
+        )
 
     ticker_df = prices[prices["ticker"] == found].copy()
     ticker_df["Date"] = pd.to_datetime(ticker_df["Date"])
@@ -214,6 +268,7 @@ def llm_response(query, summary, data_context):
         ])
         return resp["message"]["content"]
     except Exception:
+        logger.exception("Ollama chat failed; using structured summary fallback.")
         return summary
 
 
@@ -226,7 +281,18 @@ def main():
     st.title("Financial Analysis Chatbot")
     st.caption("STAT 8017B Project 4 — Group 4.1")
 
-    res = load_resources()
+    try:
+        res = load_resources()
+    except FileNotFoundError as exc:
+        st.error("### Cannot start app — missing processed data")
+        st.markdown(str(exc))
+        st.info("Run **notebooks 01–02** (and download data per README) so `data/processed/` contains the files above.")
+        st.stop()
+    except Exception as exc:
+        logger.exception("load_resources failed")
+        st.error("### Failed to load data or models")
+        st.exception(exc)
+        st.stop()
 
     # Sidebar
     with st.sidebar:
@@ -263,6 +329,11 @@ def render_chat(res):
                 st.plotly_chart(msg["fig"], use_container_width=True)
 
     if prompt := st.chat_input("Ask about ETFs, complaints, sentiment, predictions..."):
+        prompt = prompt.strip()
+        if not prompt:
+            st.info("Enter a non-empty question (spaces alone are not valid input).")
+            return
+
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
             st.markdown(prompt)
@@ -347,7 +418,7 @@ def render_complaint_dashboard(res):
 
     st.subheader("Classify a Complaint")
     complaint_text = st.text_area("Enter complaint text:")
-    if complaint_text and st.button("Classify"):
+    if complaint_text.strip() and st.button("Classify"):
         if "complaint_svm" in res:
             vec = res["comp_tfidf"].transform([clean_text(complaint_text)])
             pred = res["complaint_svm"].predict(vec)[0]
@@ -381,7 +452,7 @@ def render_price_charts(res):
 def render_sentiment_demo(res):
     st.subheader("Sentiment Analysis")
     text = st.text_input("Enter financial text to analyze:")
-    if text:
+    if text.strip():
         if "sentiment_svm" in res and "sentiment_tfidf" in res:
             vec = res["sentiment_tfidf"].transform([clean_text(text)])
             pred = res["sentiment_svm"].predict(vec)[0]

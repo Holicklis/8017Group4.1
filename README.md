@@ -125,6 +125,21 @@ Delivers a personalized "Global Navigator" experience that converts technical an
 └── README.md
 ```
 
+## 📥 Notebook / chatbot datasets (optional)
+
+**Option A — Automated (recommended)**  
+From the repo root, with a [Kaggle API token](https://www.kaggle.com/settings) (**recommended:** `export KAGGLE_API_TOKEN=KGAT_…`, or legacy `kaggle.json` in the project root / `~/.kaggle/`):
+
+```bash
+export KAGGLE_API_TOKEN=KGAT_your_token_here   # optional if kaggle.json is present
+uv run python scripts/download_data.py
+```
+
+This pulls complaints, phrasebank, and Q&A from public Hugging Face mirrors, then downloads alpha-insights, finance survey, S&P 500 prices, financial news, and FinSen from Kaggle. If you have no Kaggle token yet, the script still downloads the first three sources; run it again after adding `kaggle.json`.
+
+**Option B — OneDrive**  
+When raw artifacts are too large for GitHub (~3.3 GB raw), data can be shared via OneDrive. Copy the entire `data/` folder into the project root so the tree matches the `data/` section under **Project Structure** above.
+
 ## 🔄 Workflow & Pipeline
 
 ### Step 1: Data Ingestion
