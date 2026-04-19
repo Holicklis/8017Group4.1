@@ -42,7 +42,7 @@ def download_pdfs(driver, ticker, folder):
 
 def scrape_hkex(ticker, headless=False):
     # Dynamic Path Setup: data/ETF/documentation/{symbol}/
-    base_dir = os.path.join("data", "ETF", "documentation", ticker)
+    base_dir = os.path.join("data", "ETF", "documentation", ticker, "pdf")
     os.makedirs(base_dir, exist_ok=True)
 
     driver = setup_driver(headless)
