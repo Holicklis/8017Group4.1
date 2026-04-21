@@ -25,10 +25,14 @@ def download_full_etp_list(output_dir=None):
         "safebrowsing.enabled": True
     }
     chrome_options.add_experimental_option("prefs", prefs)
+    chrome_options.add_argument("--start-maximized")
     chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
 
     driver = webdriver.Chrome(options=chrome_options)
-    wait = WebDriverWait(driver, 20)
+    
+    driver.maximize_window()
+
+    wait = WebDriverWait(driver, 5)
 
     try:
         print("Navigating to HKEX ETP page...")
