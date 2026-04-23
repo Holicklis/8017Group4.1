@@ -45,5 +45,19 @@ def extract_to_specific_csv(pdf_path):
         return None
 
 # Execution
-pdf_input = "/Users/hunglun/Library/Mobile Documents/com~apple~CloudDocs/Study/HKU_STAT/2025_Sem2/STAT8020/Project/8017Group4.1/data/ETF/documentation/02800/pdf/1776534841_9_Prospectus.pdf"
-extract_to_specific_csv(pdf_input)
+import glob
+from tqdm import tqdm
+    
+folders = glob.glob("/Users/hunglun/Library/Mobile Documents/com~apple~CloudDocs/Study/HKU_STAT/2025_Sem2/STAT8020/Project/8017Group4.1/data/ETF/documentation/**")
+for folder in tqdm(folders):
+    files = sorted(glob.glob(folder + "/pdf/**") )
+    filenames = [i.split('/')[-1].split("_")[-1].replace(".pdf", "") for i in files]
+    exist = set()
+
+    for file, filename in zip(files, filenames):
+        filename = filename.strip()
+        if filename not in exist:
+            ...
+            extract_to_specific_csv(file)
+            exist |= {filename}
+            print(exist)
