@@ -1,109 +1,173 @@
-# HK ETF Data Pipeline
+# HK ETF Intelligence Platform
+### Evidence-Driven Global Diversification Beyond Home Bias
 
-This repository includes an ETF data engineering workflow for:
+## 🌍 Introduction
+Hong Kong retail portfolios often exhibit **home bias**: concentrated exposure to familiar local markets despite the risk-reduction potential of global allocation.  
+**HK ETF Intelligence Platform** addresses this gap with an evidence-based workflow that combines market microstructure, fund fundamentals, prospectus text, and semantic risk signals.
 
-1. Exporting ETF metadata from HKEX.
-2. Downloading ETF-related PDF documents (prospectus and related filings).
-3. Converting downloaded PDFs into cleaned sentence-level CSV files.
+The platform is built as a three-model ecosystem:
+- **Financial DNA** for quantitative structure discovery,
+- **Synapse** for semantic risk/event linkage,
+- **Financial Synthesis** for human-centric explanation and decision support.
 
-The current refactoring keeps existing script entrypoints runnable while improving naming consistency, maintainability, and path robustness.
+## 🧩 The Model Ecosystem
 
-## Naming Convention
+### 🧬 Model 1: Financial DNA (Mathematical Core) — **Implemented**
+**Purpose**  
+Identify hidden structural relationships between HK ETFs using empirical behavior, not marketing labels.
 
-The project now uses a consistent naming standard:
+**Methodology**  
+- Build a unified feature table from metadata, OHLCV, market-cap, and holdings-derived signals.
+- Standardize features and run **PCA** to retain high explanatory variance while reducing noise.
+- Apply **K-Means** clustering across multiple perspectives (for example `return_risk_profile`, `macro_sensitivity`).
+- Use perspective-level clusters to generate advisory candidates (for example home-bias mitigation and hidden twins).
 
-- folders: `lowercase_snake_case`
-- python files: `lowercase_snake_case.py`
-- generated ETF artifacts: `data/etf/...`
+**Technical Details (Current Implementation)**  
+- **Data engineering module**: `src/model/dna/data_engine.py`
+  - Loads ETF universe and harmonizes ticker-level data.
+  - Engineers return, volatility, yield, concentration, and cross-asset relationship features.
+  - Produces `data/etf/processed/financial_dna.parquet`.
+- **Clustering module**: `src/model/dna/model_core.py`
+  - Standardization: `StandardScaler`.
+  - Dimensionality reduction: `PCA` with configurable variance threshold.
+  - Clustering: `KMeans` with silhouette-based auto-k selection logic.
+  - Outputs perspective-level cluster artifacts to `data/etf/processed/cluster_views/`.
+- **Advisory layer**: `src/model/dna/advisory_logic.py`
+  - Converts cluster geometry into actionable candidate sets.
+  - Writes outputs to `data/etf/processed/advisory/`.
 
-Legacy uppercase paths are still supported in code for backward compatibility, but all new work should use lowercase paths.
+**Value Add**  
+Detects false diversification, highlights mathematically similar alternatives, and supports lower-cost global substitution analysis.
 
-## What This Pipeline Produces
+### 🧠 Model 2: Synapse (Semantic Connector) — **In Progress**
+**Purpose**  
+Bridge ETF risk disclosures with real-world narratives and event flow.
 
-- **Metadata export**: `data/etf/summary/ETP_Data_Export.xlsx`
-- **Downloaded PDF documents**: `data/etf/documentation/<TICKER>/pdf/*.pdf`
-- **Parsed text CSV files**: `data/etf/documentation/<TICKER>/csv/*.csv`
+**Methodology (Target Design)**  
+- Parse HKEX prospectus/key-facts text into sentence-level corpus.
+- Encode text with Sentence-BERT embeddings.
+- Match news/risk statements by cosine similarity and semantic re-ranking.
 
-## Source Modules
+**Current Status**  
+- Foundation code exists in `src/model/synapse/model.py`.
+- Data pipeline support exists through document scraping + PDF text extraction.
+- Production-grade scoring, calibration, and evaluation are planned next.
 
-- `src/hkex_etf/etf_metadata_export.py`  
-  Downloads HKEX ETP summary export file.
+**Value Add**  
+Generates early risk-alignment signals when external narratives resemble an ETF's documented risk DNA.
 
-- `src/hkex_etf/etf_document_scraper.py`  
-  Scrapes HKEX quote/news pages and downloads ETF PDFs.
+### 🤖 Model 3: Financial Synthesis (Intelligent Interface) — **Planned**
+**Purpose**  
+Translate quantitative clusters and semantic signals into investor-readable action guidance.
 
-- `src/text_extraction/pdf_text_extractor.py`  
-  Extracts and cleans PDF text, then saves sentence-level CSV.
+**Methodology (Target Design)**  
+- Retrieval-augmented response layer over Financial DNA + Synapse outputs.
+- Explainable recommendation templates (why switch, where risk overlaps, what diversification improves).
+- User-facing conversational interface for decision support.
 
-- `src/etf_pipeline.py`  
-  New orchestrator entrypoint to run all stages in sequence.
+**Current Status**  
+- Architecture defined; implementation will be added after Synapse stabilization.
 
-## Project Layout
+**Value Add**  
+Delivers a personalized "Global Navigator" experience that converts technical analytics into practical portfolio actions.
 
+## ✨ Key Features
+- **ETF Screener**: Quantitative ETF profiling from metadata, OHLCV, market cap, and holdings signals.
+- **Diversification Analysis**: Cluster-based similarity mapping, hidden twins, and home-bias candidate detection.
+- **AI Chat/Advisor Layer**: Human-readable interpretation of statistical outputs and risk context.
+
+## 🛠 Tech Stack
+- **Python**
+- **Scikit-Learn** (PCA, K-Means, clustering diagnostics)
+- **Sentence-Transformers** (semantic embeddings for Synapse workflows)
+- **PyMuPDF / PDF pipeline utilities** (document extraction flow)
+- **yfinance** (market and fund holdings data ingestion)
+- **Streamlit / Dash** (optional UI serving layer for interactive exploration)
+
+## 🧱 Project Structure
 ```text
 8017Group4.1/
 ├── data/
 │   └── etf/
+│       ├── instruments/
+│       │   └── all_hk_etf.csv
 │       ├── summary/
 │       │   └── ETP_Data_Export.xlsx
-│       └── documentation/
-│           └── 02801/
-│               ├── pdf/
-│               └── csv/
+│       ├── ohlcv/
+│       ├── market_cap/
+│       ├── holdings/
+│       │   └── top10/
+│       ├── documentation/
+│       │   └── <ticker>/{pdf,csv}/
+│       └── processed/
+│           ├── financial_dna.parquet
+│           ├── cluster_views/
+│           └── advisory/
 ├── src/
 │   ├── etf_pipeline.py
+│   ├── data_ingestion/
+│   │   ├── etf_market_data_fetcher.py
+│   │   └── etf_top_holdings_data_fetcher.py
 │   ├── hkex_etf/
 │   │   ├── etf_metadata_export.py
 │   │   └── etf_document_scraper.py
 │   ├── text_extraction/
 │   │   └── pdf_text_extractor.py
-│   ├── market_data/
 │   └── model/
+│       ├── dna/
+│       │   ├── data_engine.py
+│       │   ├── model_core.py
+│       │   ├── advisory_logic.py
+│       │   └── visualize_clusters.py
+│       └── synapse/
+│           └── model.py
+├── pyproject.toml
 └── README.md
 ```
 
-## Dependency Management (uv)
+## 🔄 Workflow & Pipeline
 
-This project now uses `uv` and `pyproject.toml` (not `requirements.txt`).
+### Step 1: Data Ingestion
+1. Export HKEX ETF universe metadata.
+2. Download OHLCV + market cap from market APIs.
+3. Fetch top holdings data.
+4. Scrape ETF documents (prospectus / key facts).
 
-### 1) Install uv
+### Step 2: Text Processing
+1. Convert PDFs to clean sentence-level CSV.
+2. Build corpus for semantic indexing and retrieval.
 
+### Step 3: Financial DNA Modeling
+1. Engineer feature matrix (`financial_dna.parquet`).
+2. Run PCA + K-Means by perspective.
+3. Generate advisory artifacts (home-bias and hidden-twin candidates).
+
+### Step 4: Synapse Intelligence
+1. Embed documentation text.
+2. Match external narratives/headlines via cosine similarity.
+3. Produce risk-alignment signals.
+
+### Step 5: Financial Synthesis
+1. Merge quantitative and semantic evidence.
+2. Present investor-facing insights for global diversification decisions.
+
+## 🚀 Installation & Usage
+
+### 1) Environment Setup
 ```bash
+# install uv (if needed)
 curl -LsSf https://astral.sh/uv/install.sh | sh
-```
 
-### 2) Create and sync environment
-
-```bash
+# install project dependencies
 uv sync
 ```
 
-### 3) Run commands with uv
-
+### 2) Run Core Data Pipeline
 ```bash
 uv run python src/etf_pipeline.py
 ```
 
-### Common uv commands
-
-```bash
-uv add <package>        # add runtime dependency
-uv add --dev <package>  # add dev dependency
-uv lock                 # refresh lockfile
-uv sync                 # install from lock
-uv run <command>        # run command in managed env
-```
-
-## Run Options
-
-### Option A: Run complete pipeline (recommended)
-
-```bash
-uv run python src/etf_pipeline.py
-```
-
-Useful flags:
-
+Useful options:
 ```bash
 uv run python src/etf_pipeline.py --skip-export
 uv run python src/etf_pipeline.py --skip-documents
@@ -112,129 +176,24 @@ uv run python src/etf_pipeline.py --summary-file "data/etf/summary/ETP_Data_Expo
 uv run python src/etf_pipeline.py --no-headless
 ```
 
-### Option B: Run each stage directly
-
-Metadata export:
-
-```bash
-uv run python src/hkex_etf/etf_metadata_export.py
-```
-
-PDF scraping (expects `instruments.csv` in working directory when run directly):
-
-```bash
-uv run python src/hkex_etf/etf_document_scraper.py
-```
-
-PDF text extraction:
-
-```bash
-uv run python src/text_extraction/pdf_text_extractor.py
-```
-
-## Refactoring Notes
-
-- **Single canonical script layout**: duplicate wrapper modules were removed to avoid parallel implementations.
-- **Improved path dependency**: script paths now resolve from file location instead of current working directory whenever possible.
-- **Improved maintainability**:
-  - Added structured logging support.
-  - Added/expanded type hints and function docstrings.
-  - Improved variable naming clarity (`df_*` naming for DataFrames).
-- **Pipeline orchestration**: added `src/etf_pipeline.py` to make the data flow executable end-to-end in one command.
-- **Naming consistency**: standardized primary directories/files to lowercase snake_case.
-
-## Logging
-
-- Logs are written under `logs/` instead of project root.
-- Document scraping logs: `logs/etp_prospectus.log`.
-- PDF extraction logs: `logs/pdf_text_extractor.log`.
-
-## Operational Notes
-
-- Selenium requires a compatible Chrome/Chromium and driver setup.
-- HKEX page structure may evolve. If selectors fail, update the CSS/XPath selectors in scraper modules.
-- Downloaded file names for PDFs include ticker + timestamp + index + short title to reduce collisions.
-
-## Disclaimer
-
-This project is for academic/research use and should not be considered financial advice.
-
-## DNA 🧬 Model (Financial DNA)
-
-The DNA 🧬 model is a 3-module ETF intelligence workflow that converts market + fund data into explainable clustering insights.
-
-### Core Idea
-
-- **Module 1 (`src/model/dna/data_engine.py`)** builds Financial DNA features from metadata and OHLCV time series.
-- **Module 2 (`src/model/dna/model_core.py`)** creates multiple PCA + KMeans cluster perspectives (risk/return, income, liquidity, macro).
-- **Module 3 (`src/model/dna/advisory_logic.py`)** generates actionable signals such as home-bias candidates and hidden twins.
-
-This structure separates:
-- data cleaning/feature creation,
-- statistical grouping,
-- decision-support logic.
-
-### DNA 🧬 Inputs and Outputs
-
-Inputs:
-- Metadata: `data/etf/summary/ETP_Data_Export.xlsx`
-- Instrument universe: `data/etf/instruments/all_hk_etf.csv`
-- OHLCV parquet files: `data/etf/ohlcv/...`
-
-Main outputs:
-- `data/etf/processed/financial_dna.parquet`
-- `data/etf/processed/cluster_views/cluster_perspectives.parquet`
-- `data/etf/processed/advisory/home_bias_candidates.parquet`
-- `data/etf/processed/advisory/hidden_twin_candidates.parquet`
-
-### How to Run the DNA 🧬 Model
-
-Step 1: build Financial DNA features
-
+### 3) Run Financial DNA Modules
 ```bash
 uv run python src/model/dna/data_engine.py
-```
-
-Step 2: run multi-perspective PCA + clustering
-
-```bash
 uv run python src/model/dna/model_core.py
-```
-
-Step 3: generate advisory signals
-
-```bash
 uv run python src/model/dna/advisory_logic.py
-```
-
-Recommended strict filtering (fewer pairs):
-
-```bash
-uv run python src/model/dna/advisory_logic.py \
-  --min-label-mismatches 3 \
-  --max-pc-distance 1.2 \
-  --top-k-per-etf 3 \
-  --home-bias-max-pc-distance 1.2 \
-  --home-bias-top-k-per-etf 3
-```
-
-### Cluster Visualization Script
-
-Use the visualization script to inspect cluster geometry and cluster size balance:
-
-```bash
 uv run python src/model/dna/visualize_clusters.py
 ```
 
-Optional flags:
-
+### 4) Run Data Fetchers Individually
 ```bash
-uv run python src/model/dna/visualize_clusters.py --annotate-points
-uv run python src/model/dna/visualize_clusters.py --input-path "data/etf/processed/cluster_views/cluster_perspectives.parquet"
-uv run python src/model/dna/visualize_clusters.py --output-dir "data/etf/processed/cluster_views/plots"
+uv run python src/data_ingestion/etf_market_data_fetcher.py
+uv run python src/data_ingestion/etf_top_holdings_data_fetcher.py
 ```
 
-Visualization outputs:
-- Scatter plots by perspective: `*_pc_scatter.png`
-- Cluster size plots by perspective: `*_cluster_sizes.png`
-- Cluster size summary table: `cluster_size_summary.csv`
+## 🎓 Academic Foundation
+This project is developed in an HKU academic context and is grounded in quantitative portfolio research.  
+The clustering design is inspired by **Agarwal et al. (2017)** and related literature on PCA-driven stock portfolio structuring, adapted here for ETF-level diversification and home-bias mitigation in the Hong Kong market.
+
+## ⚠️ Disclaimer
+This repository is for academic and research purposes only.  
+It does not constitute investment advice, solicitation, or a recommendation to buy/sell any security.
