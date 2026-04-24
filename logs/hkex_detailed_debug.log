@@ -1,0 +1,48 @@
+2026-04-22 23:35:52,181 - INFO - Scraping: 03152
+2026-04-22 23:36:05,368 - ERROR - Process failed for 03152: apply_complex_filters() takes 1 positional argument but 2 were given
+2026-04-22 23:36:09,896 - INFO - Scraping: 03471
+2026-04-22 23:36:11,799 - ERROR - Process failed for 03471: Message: no such window: target window already closed
+from unknown error: web view not found
+  (Session info: chrome=147.0.7727.102)
+Stacktrace:
+0   chromedriver                        0x000000010059fabc cxxbridge1$str$ptr + 3192864
+1   chromedriver                        0x0000000100597a8c cxxbridge1$str$ptr + 3160048
+2   chromedriver                        0x00000001000637c0 _RNvCs10ygTOo3JCa_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 75348
+3   chromedriver                        0x000000010003c21c chromedriver + 164380
+4   chromedriver                        0x00000001000d3f64 _RNvCs10ygTOo3JCa_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 536056
+5   chromedriver                        0x00000001000eaf58 _RNvCs10ygTOo3JCa_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 630252
+6   chromedriver                        0x00000001000a0e50 _RNvCs10ygTOo3JCa_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 326884
+7   chromedriver                        0x000000010055d248 cxxbridge1$str$ptr + 2920364
+8   chromedriver                        0x0000000100560a28 cxxbridge1$str$ptr + 2934668
+9   chromedriver                        0x00000001005431fc cxxbridge1$str$ptr + 2813792
+10  chromedriver                        0x00000001005612a8 cxxbridge1$str$ptr + 2936844
+11  chromedriver                        0x0000000100534024 cxxbridge1$str$ptr + 2751880
+12  chromedriver                        0x0000000100586988 cxxbridge1$str$ptr + 3090156
+13  chromedriver                        0x0000000100586b04 cxxbridge1$str$ptr + 3090536
+14  chromedriver                        0x00000001005976e4 cxxbridge1$str$ptr + 3159112
+15  libsystem_pthread.dylib             0x000000018662206c _pthread_start + 148
+16  libsystem_pthread.dylib             0x000000018661ce2c thread_start + 8
+
+2026-04-22 23:36:16,348 - INFO - Scraping: 03071
+2026-04-22 23:36:18,880 - ERROR - Process failed for 03071: Message: no such window: target window already closed
+from unknown error: web view not found
+  (Session info: chrome=147.0.7727.102)
+Stacktrace:
+0   chromedriver                        0x0000000104ff7abc cxxbridge1$str$ptr + 3192864
+1   chromedriver                        0x0000000104fefa8c cxxbridge1$str$ptr + 3160048
+2   chromedriver                        0x0000000104abb7c0 _RNvCs10ygTOo3JCa_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 75348
+3   chromedriver                        0x0000000104a9421c chromedriver + 164380
+4   chromedriver                        0x0000000104b2bf64 _RNvCs10ygTOo3JCa_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 536056
+5   chromedriver                        0x0000000104b42f58 _RNvCs10ygTOo3JCa_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 630252
+6   chromedriver                        0x0000000104af8e50 _RNvCs10ygTOo3JCa_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 326884
+7   chromedriver                        0x0000000104fb5248 cxxbridge1$str$ptr + 2920364
+8   chromedriver                        0x0000000104fb8a28 cxxbridge1$str$ptr + 2934668
+9   chromedriver                        0x0000000104f9b1fc cxxbridge1$str$ptr + 2813792
+10  chromedriver                        0x0000000104fb92a8 cxxbridge1$str$ptr + 2936844
+11  chromedriver                        0x0000000104f8c024 cxxbridge1$str$ptr + 2751880
+12  chromedriver                        0x0000000104fde988 cxxbridge1$str$ptr + 3090156
+13  chromedriver                        0x0000000104fdeb04 cxxbridge1$str$ptr + 3090536
+14  chromedriver                        0x0000000104fef6e4 cxxbridge1$str$ptr + 3159112
+15  libsystem_pthread.dylib             0x000000018662206c _pthread_start + 148
+16  libsystem_pthread.dylib             0x000000018661ce2c thread_start + 8
+

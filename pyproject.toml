@@ -1,0 +1,35 @@
+[project]
+name = "hk-etf-data-pipeline"
+version = "0.1.0"
+description = "HKEX ETF metadata and document processing pipeline"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "gensim",
+    "joblib",
+    "jupyter",
+    "matplotlib",
+    "mlxtend",
+    "nbconvert",
+    "nltk",
+    "numpy",
+    "ollama",
+    "openpyxl",
+    "pandas",
+    "playwright",
+    "plotly",
+    "pypdf",
+    "requests",
+    "scikit-learn",
+    "selenium",
+    "streamlit",
+    "tqdm",
+    "yfinance",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv]
+package = false
