@@ -56,7 +56,7 @@ class ClusterVisualizer:
             raise ValueError(f"Missing required columns in cluster file: {missing}")
         return df
 
-    def _plot_scatter(self, df: pd.DataFrame, perspective: str) -> None:
+    def _plot_scatter(self, df: pd.DataFrame, perspective: str, x_col: str, y_col: str) -> None:
         fig, ax = plt.subplots(figsize=(10, 7))
         clusters = sorted(df["cluster_id"].dropna().unique().tolist())
         cmap = plt.get_cmap("tab10")
@@ -64,8 +64,8 @@ class ClusterVisualizer:
         for idx, cluster_id in enumerate(clusters):
             chunk = df[df["cluster_id"] == cluster_id]
             ax.scatter(
-                chunk["pc1"],
-                chunk["pc2"],
+                chunk[x_col],
+                chunk[y_col],
                 s=35,
                 alpha=0.85,
                 color=cmap(idx % 10),
@@ -74,21 +74,24 @@ class ClusterVisualizer:
 
             if self.annotate_points and "ticker" in chunk.columns:
                 for _, row in chunk.iterrows():
-                    ax.annotate(str(row["ticker"]), (row["pc1"], row["pc2"]), fontsize=7, alpha=0.8)
+                    ax.annotate(str(row["ticker"]), (row[x_col], row[y_col]), fontsize=7, alpha=0.8)
 
-        ax.set_title(f"Financial DNA Cluster Map - {perspective}")
-        ax.set_xlabel("PC1")
-        ax.set_ylabel("PC2")
+        ax.set_title(f"Financial DNA Cluster Map - {perspective} ({x_col.upper()} vs {y_col.upper()})")
+        ax.set_xlabel(x_col.upper())
+        ax.set_ylabel(y_col.upper())
         ax.grid(True, alpha=0.2)
         ax.legend(loc="best", fontsize=8)
         fig.tight_layout()
 
-        output_path = self.output_dir / f"{perspective}_pc_scatter.png"
+        if x_col == "pc1" and y_col == "pc2":
+            output_path = self.output_dir / f"{perspective}_pc_scatter.png"
+        else:
+            output_path = self.output_dir / f"{perspective}_{x_col}_{y_col}_scatter.png"
         fig.savefig(output_path, dpi=180)
         plt.close(fig)
         logger.info("Saved scatter plot: %s", output_path)
 
-    def _plot_scatter_plotly(self, df: pd.DataFrame, perspective: str) -> None:
+    def _plot_scatter_plotly(self, df: pd.DataFrame, perspective: str, x_col: str, y_col: str) -> None:
         df_plot = df.copy()
         for col in ["stock_short_name", "geographic_focus", "ticker"]:
             if col not in df_plot.columns:
@@ -105,33 +108,33 @@ class ClusterVisualizer:
 
         fig = px.scatter(
             df_plot,
-            x="pc1",
-            y="pc2",
+            x=x_col,
+            y=y_col,
             color=df_plot["cluster_id"].astype(str),
             hover_data={
                 "ticker": True,
                 "stock_short_name": True,
                 "geographic_focus": True,
                 "cluster_id": True,
-                "pc1": ":.4f",
-                "pc2": ":.4f",
+                x_col: ":.4f",
+                y_col: ":.4f",
             },
             title=f"Financial DNA Cluster Map - {perspective}",
-            labels={"color": "Cluster ID", "pc1": "PC1", "pc2": "PC2"},
+            labels={"color": "Cluster ID", x_col: x_col.upper(), y_col: y_col.upper()},
         )
         if self.show_point_text:
             fig.update_traces(text=df_plot["label_text"], textposition="top center")
 
         if self.show_cluster_centroids:
             centroids = (
-                df_plot.groupby("cluster_id", dropna=False)[["pc1", "pc2"]]
+                df_plot.groupby("cluster_id", dropna=False)[[x_col, y_col]]
                 .mean()
                 .reset_index()
                 .sort_values("cluster_id")
             )
             fig.add_scatter(
-                x=centroids["pc1"],
-                y=centroids["pc2"],
+                x=centroids[x_col],
+                y=centroids[y_col],
                 mode="markers+text",
                 text=[f"Cluster {int(cid)}" for cid in centroids["cluster_id"]],
                 textposition="top center",
@@ -148,7 +151,10 @@ class ClusterVisualizer:
             legend_title_text="Cluster ID",
         )
 
-        html_path = self.output_dir / f"{perspective}_pc_scatter.html"
+        if x_col == "pc1" and y_col == "pc2":
+            html_path = self.output_dir / f"{perspective}_pc_scatter.html"
+        else:
+            html_path = self.output_dir / f"{perspective}_{x_col}_{y_col}_scatter.html"
         fig.write_html(html_path)
         logger.info("Saved interactive plotly scatter: %s", html_path)
 
@@ -185,9 +191,9 @@ class ClusterVisualizer:
             if chunk["pc1"].notna().sum() == 0 or chunk["pc2"].notna().sum() == 0:
                 logger.warning("Skipping %s: pc1/pc2 missing.", perspective)
                 continue
-            self._plot_scatter(chunk.copy(), perspective=perspective)
+            self._plot_scatter(chunk.copy(), perspective=perspective, x_col="pc1", y_col="pc2")
             if self.plotly_html:
-                self._plot_scatter_plotly(chunk.copy(), perspective=perspective)
+                self._plot_scatter_plotly(chunk.copy(), perspective=perspective, x_col="pc1", y_col="pc2")
 
         self._save_cluster_size_summary(df)
 
