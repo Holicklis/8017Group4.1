@@ -22,9 +22,24 @@ import pandas as pd
 logger = logging.getLogger(__name__)
 
 TRADING_DAYS_PER_YEAR = 252
+TRADING_DAYS_PER_MONTH = 21
+BENCHMARK_SYMBOLS = [
+    "^AXJO",
+    "^HSI",
+    "^KS11",
+    "^MXWO",
+    "^N225",
+    "^SPX",
+    "^STOXX50E",
+    "^TWII",
+    "XAU",
+    "^SPGSCL",
+    "BTC",
+]
 REQUIRED_METADATA_COLUMNS = [
     "Stock code*",
     "Stock short name*",
+    "Listing date*",
     "Product sub-category*",
     "Dividend yield (%)*",
     "Ongoing Charges Figures (%)*",
@@ -77,6 +92,11 @@ def _clean_numeric_series(series: pd.Series) -> pd.Series:
     return pd.to_numeric(cleaned, errors="coerce")
 
 
+def _symbol_to_file_token(symbol: str) -> str:
+    token = re.sub(r"[^A-Za-z0-9]", "", symbol.upper())
+    return token
+
+
 class ETFDataProcessor:
     """Build Financial DNA features from metadata and OHLCV parquet files."""
 
@@ -86,14 +106,25 @@ class ETFDataProcessor:
         ohlcv_dir: Optional[Path] = None,
         output_path: Optional[Path] = None,
         instruments_path: Optional[Path] = None,
+        benchmark_dir: Optional[Path] = None,
+        holdings_dir: Optional[Path] = None,
         rolling_window: int = 30,
+        min_price_points: int = 200,
+        macro_corr_window_days: int = TRADING_DAYS_PER_YEAR * 3,
+        macro_min_overlap_days: int = TRADING_DAYS_PER_YEAR,
     ) -> None:
         etf_root = _default_etf_data_root()
         self.metadata_path = metadata_path or etf_root / "summary" / "ETP_Data_Export.xlsx"
         self.ohlcv_dir = ohlcv_dir or etf_root / "ohlcv"
         self.output_path = output_path or etf_root / "processed" / "financial_dna.parquet"
         self.instruments_path = instruments_path or etf_root / "instruments" / "all_hk_etf.csv"
+        self.benchmark_dir = benchmark_dir or self.ohlcv_dir
+        self.holdings_dir = holdings_dir or etf_root / "holdings" / "top10"
         self.rolling_window = rolling_window
+        self.min_price_points = min_price_points
+        self.macro_corr_window_days = macro_corr_window_days
+        self.macro_min_overlap_days = macro_min_overlap_days
+        self._benchmark_cache: dict[str, pd.Series] = {}
 
     @staticmethod
     def _validate_required_columns(df: pd.DataFrame) -> None:
@@ -111,6 +142,7 @@ class ETFDataProcessor:
             columns={
                 "Stock code*": "stock_code_raw",
                 "Stock short name*": "stock_short_name",
+                "Listing date*": "listing_date",
                 "Product sub-category*": "product_sub_category",
                 "Dividend yield (%)*": "dividend_yield_pct",
                 "Ongoing Charges Figures (%)*": "ongoing_charges_pct",
@@ -126,6 +158,7 @@ class ETFDataProcessor:
         )
 
         out["stock_code_raw"] = pd.to_numeric(out["stock_code_raw"], errors="coerce")
+        out["listing_date"] = pd.to_datetime(out["listing_date"], errors="coerce")
         out["stock_short_name"] = out["stock_short_name"].astype("string")
         out["product_sub_category"] = out["product_sub_category"].astype("string")
         out["asset_class"] = out["asset_class"].astype("string")
@@ -150,21 +183,27 @@ class ETFDataProcessor:
 
         instrument_codes = self._load_allowed_instruments()
         out = out[out["hkex_code"].isin(instrument_codes)].copy()
+        out = out[out["listing_date"].isna() | (out["listing_date"] <= pd.Timestamp("2024-12-31"))].copy()
+        # out = out[out["asset_class"].str.lower().str.contains("equity", na=False)].copy()
 
         # Keep sub-category aware AUM treatment first, then fill remaining numeric gaps by mean.
         sub_category_key = out["product_sub_category"].fillna("UNKNOWN")
         group_median = out.groupby(sub_category_key)["aum"].transform("median")
         out["aum"] = out["aum"].fillna(group_median).fillna(out["aum"].mean())
 
+        # Business rule: fund yield missing values should be treated as 0.
+        out["dividend_yield_pct"] = out["dividend_yield_pct"].fillna(0.0)
         out["yield_to_cost_ratio"] = out["dividend_yield_pct"] / out["ongoing_charges_pct"].replace(0, np.nan)
+        out["concentration_top10"] = out["hkex_code"].apply(self._compute_concentration_top10)
 
-        numeric_fill_mean_cols = numeric_cols + ["yield_to_cost_ratio"]
+        numeric_fill_mean_cols = [col for col in numeric_cols + ["yield_to_cost_ratio"] if col != "dividend_yield_pct"]
         for col in numeric_fill_mean_cols:
             out[col] = out[col].fillna(out[col].mean())
 
         keep_cols = [
             "stock_code_raw",
             "stock_short_name",
+            "listing_date",
             "product_sub_category",
             "asset_class",
             "geographic_focus",
@@ -176,12 +215,63 @@ class ETFDataProcessor:
             "dividend_yield_pct",
             "ongoing_charges_pct",
             "aum",
-            "closing_price_metadata",
             "premium_discount_pct",
             "yield_to_cost_ratio",
+            "concentration_top10",
         ]
         out = out.loc[:, keep_cols]
         return out
+
+    def _compute_concentration_top10(self, hkex_code: str) -> float:
+        if not hkex_code:
+            return 0.9
+
+        candidate_dirs = [
+            self.holdings_dir / hkex_code,
+            self.holdings_dir / str(int(hkex_code)),
+        ]
+        candidate_files: list[Path] = []
+        for folder in candidate_dirs:
+            candidate_files.extend([folder / "top_holdings.parquet", folder / "top_holdings.csv"])
+
+        file_path = next((p for p in candidate_files if p.exists()), None)
+        if file_path is None:
+            return 0.9
+
+        df_holdings = pd.read_parquet(file_path) if file_path.suffix == ".parquet" else pd.read_csv(file_path)
+        if df_holdings.empty:
+            return 0.9
+
+        # Try common weight column names first.
+        preferred_cols = [
+            "holdingPercent",
+            "holding_percent",
+            "holding_pct",
+            "weight",
+            "weight_pct",
+            "percent",
+            "percentage",
+        ]
+        weight_col = next((col for col in preferred_cols if col in df_holdings.columns), None)
+        if weight_col is None:
+            # Fallback: detect first numeric-like column that looks like a weight.
+            for col in df_holdings.columns:
+                col_lower = str(col).lower()
+                if any(token in col_lower for token in ["percent", "weight", "holding"]):
+                    weight_col = col
+                    break
+        if weight_col is None:
+            return 0.9
+
+        weights = _clean_numeric_series(df_holdings[weight_col]).dropna().head(10)
+        if weights.empty:
+            return 0.9
+
+        concentration = float(weights.sum())
+        # Normalize if values are stored in 0-100 range.
+        if concentration > 1.5:
+            concentration = concentration / 100.0
+        return float(np.clip(concentration, 0.0, 1.0))
 
     def _load_allowed_instruments(self) -> set[str]:
         if not self.instruments_path.exists():
@@ -234,30 +324,148 @@ class ETFDataProcessor:
             return {}
 
         close = pd.to_numeric(df_ohlcv["Close"], errors="coerce").dropna()
-        if len(close) < self.rolling_window + 1:
+        if len(close) < max(self.rolling_window + 1, self.min_price_points):
             return {}
 
         log_returns = np.log(close / close.shift(1)).dropna()
+        monthly_returns = close.resample("ME").last().pct_change().dropna()
         rolling_vol = log_returns.rolling(self.rolling_window).std()
         vol_30d = float(rolling_vol.iloc[-1]) if not rolling_vol.dropna().empty else np.nan
         annualized_vol = vol_30d * math.sqrt(TRADING_DAYS_PER_YEAR) if pd.notna(vol_30d) else np.nan
         mean_daily_return = float(log_returns.mean()) if not log_returns.empty else np.nan
 
+        ret_1y = self._period_return(close, periods=TRADING_DAYS_PER_YEAR)
+        ret_3y = self._period_return(close, periods=TRADING_DAYS_PER_YEAR * 3)
+        ret_5y = self._period_return(close, periods=TRADING_DAYS_PER_YEAR * 5)
+        yearly_candidates = [
+            ret_1y,
+            ret_3y / 3 if pd.notna(ret_3y) else np.nan,
+            ret_5y / 5 if pd.notna(ret_5y) else np.nan,
+        ]
+        valid_candidates = [x for x in yearly_candidates if pd.notna(x)]
+        avg_yearly_return = float(np.mean(valid_candidates)) if valid_candidates else np.nan
+        monthly_vol = float(monthly_returns.std()) if not monthly_returns.empty else np.nan
+
+        sharpe_window = min(len(log_returns), TRADING_DAYS_PER_YEAR * 3)
+        sharpe_returns = log_returns.tail(sharpe_window)
         sharpe_ratio = np.nan
-        if pd.notna(vol_30d) and vol_30d > 0 and pd.notna(mean_daily_return):
-            sharpe_ratio = mean_daily_return / vol_30d
+        sharpe_vol = float(sharpe_returns.std()) if not sharpe_returns.empty else np.nan
+        sharpe_mean = float(sharpe_returns.mean()) if not sharpe_returns.empty else np.nan
+        if pd.notna(sharpe_vol) and sharpe_vol > 0 and pd.notna(sharpe_mean):
+            sharpe_ratio = (sharpe_mean / sharpe_vol) * math.sqrt(TRADING_DAYS_PER_YEAR)
 
-        mean_volume = pd.to_numeric(df_ohlcv["Volume"], errors="coerce").dropna().mean()
+        macro_corrs = self._compute_macro_correlations(log_returns)
 
-        return {
-            "latest_close": float(close.iloc[-1]),
+        features: dict[str, float] = {
             "obs_count": float(len(close)),
             "mean_daily_log_return": mean_daily_return,
+            "return_1y": ret_1y,
+            "return_3y": ret_3y,
+            "return_5y": ret_5y,
+            "average_yearly_return": float(avg_yearly_return) if pd.notna(avg_yearly_return) else np.nan,
+            "monthly_volatility": monthly_vol,
             "volatility_30d": vol_30d,
             "annualized_volatility": annualized_vol,
             "sharpe_ratio": sharpe_ratio,
-            "avg_volume": float(mean_volume) if pd.notna(mean_volume) else np.nan,
+            "return_to_risk_1y": (ret_1y / annualized_vol) if pd.notna(ret_1y) and pd.notna(annualized_vol) and annualized_vol > 0 else np.nan,
         }
+        features.update(macro_corrs)
+        return features
+
+    @staticmethod
+    def _period_return(close: pd.Series, periods: int) -> float:
+        if len(close) <= periods:
+            return np.nan
+        start = float(close.iloc[-(periods + 1)])
+        end = float(close.iloc[-1])
+        if start <= 0:
+            return np.nan
+        return (end / start) - 1.0
+
+    def _load_benchmark_returns(self, symbol: str) -> Optional[pd.Series]:
+        if symbol in self._benchmark_cache:
+            return self._benchmark_cache[symbol]
+
+        token = _symbol_to_file_token(symbol)
+        candidate_paths = [
+            self.benchmark_dir / f"{symbol}.parquet",
+            self.benchmark_dir / f"{token}.parquet",
+            self.benchmark_dir / symbol / "ohlcv.parquet",
+            self.benchmark_dir / token / "ohlcv.parquet",
+            self.benchmark_dir / f"{symbol}.csv",
+            self.benchmark_dir / f"{token}.csv",
+            self.benchmark_dir / symbol / "ohlcv.csv",
+            self.benchmark_dir / token / "ohlcv.csv",
+        ]
+        file_path = next((path for path in candidate_paths if path.exists()), None)
+        if file_path is None:
+            self._benchmark_cache[symbol] = None
+            return None
+
+        if file_path.suffix.lower() == ".parquet":
+            df = pd.read_parquet(file_path)
+        else:
+            df = pd.read_csv(file_path)
+
+        if "Date" in df.columns:
+            df["Date"] = pd.to_datetime(df["Date"], errors="coerce")
+            df = df.dropna(subset=["Date"]).sort_values("Date").set_index("Date")
+        else:
+            df.index = pd.to_datetime(df.index, errors="coerce")
+            df = df[~df.index.isna()].sort_index()
+
+        close_col = "Close" if "Close" in df.columns else ("Adj Close" if "Adj Close" in df.columns else None)
+        if close_col is None:
+            self._benchmark_cache[symbol] = None
+            return None
+
+        close = pd.to_numeric(df[close_col], errors="coerce").dropna()
+        if close.empty:
+            self._benchmark_cache[symbol] = None
+            return None
+        returns = np.log(close / close.shift(1)).dropna()
+        self._benchmark_cache[symbol] = returns
+        return returns
+
+    def _compute_macro_correlations(self, etf_log_returns: pd.Series) -> dict[str, float]:
+        out: dict[str, float] = {}
+        etf_returns = etf_log_returns.sort_index()
+        for symbol in BENCHMARK_SYMBOLS:
+            bench_returns = self._load_benchmark_returns(symbol)
+            token = _symbol_to_file_token(symbol).lower()
+            corr_feature_name = f"corr_{token}"
+            beta_feature_name = f"beta_{token}"
+            if bench_returns is None:
+                out[corr_feature_name] = np.nan
+                out[beta_feature_name] = np.nan
+                continue
+
+            # Reindex benchmark to ETF calendar first for consistent overlap handling.
+            bench_aligned = bench_returns.reindex(etf_returns.index)
+            aligned = pd.concat([etf_returns, bench_aligned], axis=1).dropna()
+            if len(aligned) < self.macro_min_overlap_days:
+                out[corr_feature_name] = np.nan
+                out[beta_feature_name] = np.nan
+                continue
+
+            # Use a fixed trailing window for more comparable correlations.
+            aligned = aligned.tail(self.macro_corr_window_days)
+            if len(aligned) < self.macro_min_overlap_days:
+                out[corr_feature_name] = np.nan
+                out[beta_feature_name] = np.nan
+                continue
+
+            etf_series = aligned.iloc[:, 0]
+            bench_series = aligned.iloc[:, 1]
+            out[corr_feature_name] = float(etf_series.corr(bench_series))
+
+            bench_var = float(bench_series.var())
+            if pd.notna(bench_var) and bench_var > 0:
+                covariance = float(etf_series.cov(bench_series))
+                out[beta_feature_name] = covariance / bench_var
+            else:
+                out[beta_feature_name] = np.nan
+        return out
 
     def run(self) -> pd.DataFrame:
         metadata = self._load_metadata()
@@ -277,7 +485,10 @@ class ETFDataProcessor:
         numeric_cols = result.select_dtypes(include=["number"]).columns.tolist()
         for col in numeric_cols:
             result[col] = pd.to_numeric(result[col], errors="coerce").astype("float64")
-            result[col] = result[col].fillna(result[col].mean())
+            if col == "dividend_yield_pct":
+                result[col] = result[col].fillna(0.0)
+            else:
+                result[col] = result[col].fillna(result[col].mean())
 
         self.output_path.parent.mkdir(parents=True, exist_ok=True)
         result.to_parquet(self.output_path, index=False)
@@ -297,7 +508,37 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help="Path to all_hk_etf.csv (must include 'instruments' column)",
     )
+    parser.add_argument(
+        "--benchmark-dir",
+        type=Path,
+        default=None,
+        help="Directory containing macro benchmark OHLCV files (.parquet/.csv)",
+    )
+    parser.add_argument(
+        "--holdings-dir",
+        type=Path,
+        default=None,
+        help="Directory containing ETF top-10 holdings files",
+    )
+    parser.add_argument(
+        "--macro-corr-window-days",
+        type=int,
+        default=TRADING_DAYS_PER_YEAR * 3,
+        help="Trailing window size (in trading days) for macro correlations",
+    )
+    parser.add_argument(
+        "--macro-min-overlap-days",
+        type=int,
+        default=TRADING_DAYS_PER_YEAR,
+        help="Minimum overlapping trading days required for macro correlation",
+    )
     parser.add_argument("--rolling-window", type=int, default=30, help="Rolling window for volatility")
+    parser.add_argument(
+        "--min-price-points",
+        type=int,
+        default=200,
+        help="Minimum number of valid close-price observations required per ETF",
+    )
     return parser.parse_args()
 
 
@@ -309,7 +550,12 @@ def main() -> None:
         ohlcv_dir=args.ohlcv_dir,
         output_path=args.output_path,
         instruments_path=args.instruments_path,
+        benchmark_dir=args.benchmark_dir,
+        holdings_dir=args.holdings_dir,
         rolling_window=args.rolling_window,
+        min_price_points=args.min_price_points,
+        macro_corr_window_days=args.macro_corr_window_days,
+        macro_min_overlap_days=args.macro_min_overlap_days,
     )
     processor.run()
 
