@@ -1,0 +1,92 @@
+2026-04-22 23:26:51,376 - INFO - --- Starting Scrape: 03152 ---
+2026-04-22 23:27:03,921 - INFO - Applying Category Filters...
+2026-04-22 23:27:24,203 - ERROR - Critical error during 03152: Message: 
+Stacktrace:
+0   chromedriver                        0x0000000101173abc cxxbridge1$str$ptr + 3192864
+1   chromedriver                        0x000000010116ba8c cxxbridge1$str$ptr + 3160048
+2   chromedriver                        0x0000000100c377c0 _RNvCs10ygTOo3JCa_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 75348
+3   chromedriver                        0x0000000100c7f464 _RNvCs10ygTOo3JCa_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 369400
+4   chromedriver                        0x0000000100cbf448 _RNvCs10ygTOo3JCa_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 631516
+5   chromedriver                        0x0000000100c74e50 _RNvCs10ygTOo3JCa_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 326884
+6   chromedriver                        0x0000000101131248 cxxbridge1$str$ptr + 2920364
+7   chromedriver                        0x0000000101134a28 cxxbridge1$str$ptr + 2934668
+8   chromedriver                        0x00000001011171fc cxxbridge1$str$ptr + 2813792
+9   chromedriver                        0x00000001011352a8 cxxbridge1$str$ptr + 2936844
+10  chromedriver                        0x0000000101108024 cxxbridge1$str$ptr + 2751880
+11  chromedriver                        0x000000010115a988 cxxbridge1$str$ptr + 3090156
+12  chromedriver                        0x000000010115ab04 cxxbridge1$str$ptr + 3090536
+13  chromedriver                        0x000000010116b6e4 cxxbridge1$str$ptr + 3159112
+14  libsystem_pthread.dylib             0x000000018662206c _pthread_start + 148
+15  libsystem_pthread.dylib             0x000000018661ce2c thread_start + 8
+
+2026-04-22 23:27:24,519 - INFO - Done with 03152.
+2026-04-22 23:27:28,907 - INFO - --- Starting Scrape: 03471 ---
+2026-04-22 23:27:34,999 - ERROR - Critical error during 03471: Message: no such window: target window already closed
+from unknown error: web view not found
+  (Session info: chrome=147.0.7727.102)
+Stacktrace:
+0   chromedriver                        0x00000001011bbabc cxxbridge1$str$ptr + 3192864
+1   chromedriver                        0x00000001011b3a8c cxxbridge1$str$ptr + 3160048
+2   chromedriver                        0x0000000100c7f7c0 _RNvCs10ygTOo3JCa_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 75348
+3   chromedriver                        0x0000000100c5821c chromedriver + 164380
+4   chromedriver                        0x0000000100ceff64 _RNvCs10ygTOo3JCa_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 536056
+5   chromedriver                        0x0000000100d06f58 _RNvCs10ygTOo3JCa_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 630252
+6   chromedriver                        0x0000000100cbce50 _RNvCs10ygTOo3JCa_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 326884
+7   chromedriver                        0x0000000101179248 cxxbridge1$str$ptr + 2920364
+8   chromedriver                        0x000000010117ca28 cxxbridge1$str$ptr + 2934668
+9   chromedriver                        0x000000010115f1fc cxxbridge1$str$ptr + 2813792
+10  chromedriver                        0x000000010117d2a8 cxxbridge1$str$ptr + 2936844
+11  chromedriver                        0x0000000101150024 cxxbridge1$str$ptr + 2751880
+12  chromedriver                        0x00000001011a2988 cxxbridge1$str$ptr + 3090156
+13  chromedriver                        0x00000001011a2b04 cxxbridge1$str$ptr + 3090536
+14  chromedriver                        0x00000001011b36e4 cxxbridge1$str$ptr + 3159112
+15  libsystem_pthread.dylib             0x000000018662206c _pthread_start + 148
+16  libsystem_pthread.dylib             0x000000018661ce2c thread_start + 8
+
+2026-04-22 23:27:35,091 - INFO - Done with 03471.
+2026-04-22 23:31:45,321 - INFO - --- Starting Scrape: 03152 ---
+2026-04-22 23:31:58,655 - INFO - Applying Category Filters...
+2026-04-22 23:32:18,938 - ERROR - Critical error during 03152: Message: 
+Stacktrace:
+0   chromedriver                        0x00000001034f3abc cxxbridge1$str$ptr + 3192864
+1   chromedriver                        0x00000001034eba8c cxxbridge1$str$ptr + 3160048
+2   chromedriver                        0x0000000102fb77c0 _RNvCs10ygTOo3JCa_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 75348
+3   chromedriver                        0x0000000102fff464 _RNvCs10ygTOo3JCa_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 369400
+4   chromedriver                        0x000000010303f448 _RNvCs10ygTOo3JCa_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 631516
+5   chromedriver                        0x0000000102ff4e50 _RNvCs10ygTOo3JCa_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 326884
+6   chromedriver                        0x00000001034b1248 cxxbridge1$str$ptr + 2920364
+7   chromedriver                        0x00000001034b4a28 cxxbridge1$str$ptr + 2934668
+8   chromedriver                        0x00000001034971fc cxxbridge1$str$ptr + 2813792
+9   chromedriver                        0x00000001034b52a8 cxxbridge1$str$ptr + 2936844
+10  chromedriver                        0x0000000103488024 cxxbridge1$str$ptr + 2751880
+11  chromedriver                        0x00000001034da988 cxxbridge1$str$ptr + 3090156
+12  chromedriver                        0x00000001034dab04 cxxbridge1$str$ptr + 3090536
+13  chromedriver                        0x00000001034eb6e4 cxxbridge1$str$ptr + 3159112
+14  libsystem_pthread.dylib             0x000000018662206c _pthread_start + 148
+15  libsystem_pthread.dylib             0x000000018661ce2c thread_start + 8
+
+2026-04-22 23:32:19,215 - INFO - Done with 03152.
+2026-04-22 23:32:23,800 - INFO - --- Starting Scrape: 03471 ---
+2026-04-22 23:32:25,043 - ERROR - Critical error during 03471: Message: no such window: target window already closed
+from unknown error: web view not found
+  (Session info: chrome=147.0.7727.102)
+Stacktrace:
+0   chromedriver                        0x000000010553fabc cxxbridge1$str$ptr + 3192864
+1   chromedriver                        0x0000000105537a8c cxxbridge1$str$ptr + 3160048
+2   chromedriver                        0x00000001050037c0 _RNvCs10ygTOo3JCa_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 75348
+3   chromedriver                        0x0000000104fdc21c chromedriver + 164380
+4   chromedriver                        0x0000000105073f64 _RNvCs10ygTOo3JCa_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 536056
+5   chromedriver                        0x000000010508af58 _RNvCs10ygTOo3JCa_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 630252
+6   chromedriver                        0x0000000105040e50 _RNvCs10ygTOo3JCa_7___rustc35___rust_no_alloc_shim_is_unstable_v2 + 326884
+7   chromedriver                        0x00000001054fd248 cxxbridge1$str$ptr + 2920364
+8   chromedriver                        0x0000000105500a28 cxxbridge1$str$ptr + 2934668
+9   chromedriver                        0x00000001054e31fc cxxbridge1$str$ptr + 2813792
+10  chromedriver                        0x00000001055012a8 cxxbridge1$str$ptr + 2936844
+11  chromedriver                        0x00000001054d4024 cxxbridge1$str$ptr + 2751880
+12  chromedriver                        0x0000000105526988 cxxbridge1$str$ptr + 3090156
+13  chromedriver                        0x0000000105526b04 cxxbridge1$str$ptr + 3090536
+14  chromedriver                        0x00000001055376e4 cxxbridge1$str$ptr + 3159112
+15  libsystem_pthread.dylib             0x000000018662206c _pthread_start + 148
+16  libsystem_pthread.dylib             0x000000018661ce2c thread_start + 8
+
+2026-04-22 23:32:25,138 - INFO - Done with 03471.
