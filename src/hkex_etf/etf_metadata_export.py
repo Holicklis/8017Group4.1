@@ -29,9 +29,9 @@ def _default_summary_dir() -> Path:
     return lower_path
 
 
-def _default_instruments_csv_path() -> Path:
-    """Return default output CSV path for ETF instruments list."""
-    return _project_root() / "data" / "etf" / "instruments" / "etf.csv"
+def _default_instruments_dir() -> Path:
+    """Return default output directory for ETF instruments lists."""
+    return _project_root() / "data" / "etf" / "instruments"
 
 
 def _resolve_download_dir(output_dir: Optional[Union[str, Path]]) -> Path:
@@ -51,27 +51,10 @@ def _resolve_download_dir(output_dir: Optional[Union[str, Path]]) -> Path:
     return path_output
 
 
-def export_hkd_etf_instruments(
-    summary_xlsx: Union[str, Path],
-    output_csv: Optional[Union[str, Path]] = None,
-) -> Path:
-    """
-    Export unique, sorted HKD ETF stock codes to CSV.
-
-    Logic follows notebook filter:
-    - Stock code* < 8000
-    - Base currency* == "HKD"
-    """
-    xlsx_path = Path(summary_xlsx).expanduser().resolve()
-    target_csv = (
-        Path(output_csv).expanduser().resolve() if output_csv else _default_instruments_csv_path()
-    )
-    target_csv.parent.mkdir(parents=True, exist_ok=True)
-
-    df = pd.read_excel(xlsx_path, skipfooter=2)
-    filtered = df.query("`Stock code*` < 8000 and `Base currency*` == 'HKD'")
-    instruments = (
-        filtered["Stock code*"]
+def _extract_sorted_unique_instruments(df: pd.DataFrame) -> pd.DataFrame:
+    """Convert Stock code* column to sorted unique instruments DataFrame."""
+    return (
+        pd.to_numeric(df["Stock code*"], errors="coerce")
         .dropna()
         .astype(int)
         .drop_duplicates()
@@ -79,9 +62,43 @@ def export_hkd_etf_instruments(
         .rename("instruments")
         .to_frame()
     )
-    instruments.to_csv(target_csv, index=False)
-    logger.info("Exported %s instruments to %s", len(instruments), target_csv)
-    return target_csv
+
+
+def export_etf_instruments(
+    summary_xlsx: Union[str, Path],
+    output_dir: Optional[Union[str, Path]] = None,
+) -> dict[str, Path]:
+    """
+    Export unique, sorted ETF stock-code lists to CSV files:
+    - all_etf.csv: no filter
+    - all_hk_etf.csv: Stock code* < 8000
+    - all_hkd_etf.csv: Stock code* < 8000 and Base currency* == HKD
+    """
+    xlsx_path = Path(summary_xlsx).expanduser().resolve()
+    target_dir = Path(output_dir).expanduser().resolve() if output_dir else _default_instruments_dir()
+    target_dir.mkdir(parents=True, exist_ok=True)
+
+    df = pd.read_excel(xlsx_path, skipfooter=2)
+
+    all_etf_df = _extract_sorted_unique_instruments(df)
+    all_hk_etf_df = _extract_sorted_unique_instruments(df.query("`Stock code*` < 8000"))
+    all_hkd_etf_df = _extract_sorted_unique_instruments(
+        df.query("`Stock code*` < 8000 and `Base currency*` == 'HKD'")
+    )
+
+    output_files = {
+        "all_etf": target_dir / "all_etf.csv",
+        "all_hk_etf": target_dir / "all_hk_etf.csv",
+        "all_hkd_etf": target_dir / "all_hkd_etf.csv",
+    }
+    all_etf_df.to_csv(output_files["all_etf"], index=False)
+    all_hk_etf_df.to_csv(output_files["all_hk_etf"], index=False)
+    all_hkd_etf_df.to_csv(output_files["all_hkd_etf"], index=False)
+
+    logger.info("Exported %s instruments to %s", len(all_etf_df), output_files["all_etf"])
+    logger.info("Exported %s instruments to %s", len(all_hk_etf_df), output_files["all_hk_etf"])
+    logger.info("Exported %s instruments to %s", len(all_hkd_etf_df), output_files["all_hkd_etf"])
+    return output_files
 
 
 def _build_driver(download_dir: Path, headless: bool = False) -> Any:
@@ -190,4 +207,4 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
     downloaded_file = download_full_etp_list()
     if downloaded_file is not None:
-        export_hkd_etf_instruments(downloaded_file)
+        export_etf_instruments(downloaded_file)

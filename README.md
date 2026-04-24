@@ -158,3 +158,83 @@ uv run python src/text_extraction/pdf_text_extractor.py
 ## Disclaimer
 
 This project is for academic/research use and should not be considered financial advice.
+
+## DNA 🧬 Model (Financial DNA)
+
+The DNA 🧬 model is a 3-module ETF intelligence workflow that converts market + fund data into explainable clustering insights.
+
+### Core Idea
+
+- **Module 1 (`src/model/dna/data_engine.py`)** builds Financial DNA features from metadata and OHLCV time series.
+- **Module 2 (`src/model/dna/model_core.py`)** creates multiple PCA + KMeans cluster perspectives (risk/return, income, liquidity, macro).
+- **Module 3 (`src/model/dna/advisory_logic.py`)** generates actionable signals such as home-bias candidates and hidden twins.
+
+This structure separates:
+- data cleaning/feature creation,
+- statistical grouping,
+- decision-support logic.
+
+### DNA 🧬 Inputs and Outputs
+
+Inputs:
+- Metadata: `data/etf/summary/ETP_Data_Export.xlsx`
+- Instrument universe: `data/etf/instruments/all_hk_etf.csv`
+- OHLCV parquet files: `data/etf/ohlcv/...`
+
+Main outputs:
+- `data/etf/processed/financial_dna.parquet`
+- `data/etf/processed/cluster_views/cluster_perspectives.parquet`
+- `data/etf/processed/advisory/home_bias_candidates.parquet`
+- `data/etf/processed/advisory/hidden_twin_candidates.parquet`
+
+### How to Run the DNA 🧬 Model
+
+Step 1: build Financial DNA features
+
+```bash
+uv run python src/model/dna/data_engine.py
+```
+
+Step 2: run multi-perspective PCA + clustering
+
+```bash
+uv run python src/model/dna/model_core.py
+```
+
+Step 3: generate advisory signals
+
+```bash
+uv run python src/model/dna/advisory_logic.py
+```
+
+Recommended strict filtering (fewer pairs):
+
+```bash
+uv run python src/model/dna/advisory_logic.py \
+  --min-label-mismatches 3 \
+  --max-pc-distance 1.2 \
+  --top-k-per-etf 3 \
+  --home-bias-max-pc-distance 1.2 \
+  --home-bias-top-k-per-etf 3
+```
+
+### Cluster Visualization Script
+
+Use the visualization script to inspect cluster geometry and cluster size balance:
+
+```bash
+uv run python src/model/dna/visualize_clusters.py
+```
+
+Optional flags:
+
+```bash
+uv run python src/model/dna/visualize_clusters.py --annotate-points
+uv run python src/model/dna/visualize_clusters.py --input-path "data/etf/processed/cluster_views/cluster_perspectives.parquet"
+uv run python src/model/dna/visualize_clusters.py --output-dir "data/etf/processed/cluster_views/plots"
+```
+
+Visualization outputs:
+- Scatter plots by perspective: `*_pc_scatter.png`
+- Cluster size plots by perspective: `*_cluster_sizes.png`
+- Cluster size summary table: `cluster_size_summary.csv`
