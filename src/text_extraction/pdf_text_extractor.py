@@ -1,4 +1,3 @@
-import os
 import re
 import logging
 import pandas as pd
@@ -8,10 +7,18 @@ from typing import List, Optional, Union
 from tqdm import tqdm
 
 # Configure Logging
+_PROJECT_ROOT = Path(__file__).resolve().parents[2]
+_LOG_DIR = _PROJECT_ROOT / "logs"
+_LOG_DIR.mkdir(parents=True, exist_ok=True)
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
+    handlers=[
+        logging.FileHandler(_LOG_DIR / "pdf_text_extractor.log"),
+        logging.StreamHandler(),
+    ],
 )
 logger = logging.getLogger("ETFPDFProcessor")
 
@@ -32,10 +39,17 @@ class ETFPDFProcessor:
         if data_root:
             self.data_dir = Path(data_root)
         else:
-            # Script is in src/text_extract/, data is in ../../data/
+            # Script is in src/text_extraction/, data is in ../../data/
             self.data_dir = Path(__file__).resolve().parents[2] / "data"
-        
-        self.etf_doc_path = self.data_dir / "ETF" / "documentation"
+
+        lower_path = self.data_dir / "etf" / "documentation"
+        legacy_paths = [self.data_dir / "ETF" / "documentation"]
+        self.etf_doc_path = lower_path
+        if not self.etf_doc_path.exists():
+            for path in legacy_paths:
+                if path.exists():
+                    self.etf_doc_path = path
+                    break
         
         if not self.data_dir.exists():
             logger.error(f"Data directory not found at: {self.data_dir}")
@@ -125,13 +139,13 @@ class ETFPDFProcessor:
             final_sentences = self._merge_fragments(initial_segments)
 
             # Create DataFrame
-            df = pd.DataFrame({
+            df_sentences = pd.DataFrame({
                 "sentence_id": range(len(final_sentences)),
                 "text": final_sentences
             })
 
             # Save with utf-8-sig for Excel compatibility in HK/Asia regions
-            df.to_csv(csv_output_path, index=False, encoding='utf-8-sig')
+            df_sentences.to_csv(csv_output_path, index=False, encoding='utf-8-sig')
             logger.info(f"Processed: {pdf_path.name}")
             return csv_output_path
 
@@ -139,7 +153,7 @@ class ETFPDFProcessor:
             logger.error(f"Failed to process {pdf_path.name}: {e}")
             return None
 
-    def run_pipeline(self):
+    def run_pipeline(self) -> None:
         """
         Orchestrates the extraction over the specific directory structure.
         """

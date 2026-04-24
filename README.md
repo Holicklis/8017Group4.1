@@ -1,113 +1,160 @@
-Got it. I have merged your original project narrative with a high-powered **"Technical Implementation & Optimization"** section. This allows the reader to first understand the *business value* (your original content) and then see the *engineering depth* (the AI and M2 hardware work we just did).
+# HK ETF Data Pipeline
 
-Here is the full, improved `README.md`.
+This repository includes an ETF data engineering workflow for:
 
----
+1. Exporting ETF metadata from HKEX.
+2. Downloading ETF-related PDF documents (prospectus and related filings).
+3. Converting downloaded PDFs into cleaned sentence-level CSV files.
 
-# HK ETF Global Navigator 🚀
-### An AI-Powered Platform to Mitigate Home Bias in HK Retail Investing
+The current refactoring keeps existing script entrypoints runnable while improving naming consistency, maintainability, and path robustness.
 
-## Project Overview
-HK ETF Global Navigator is an intelligent investment assistant designed to help Hong Kong retail investors diversify beyond domestic markets. It combines structured financial analytics with NLP-driven insights to provide:
+## Naming Convention
 
-- **ETF Classification and Ranking:** Data-driven categorization of fund performance.
-- **Context-aware Financial News Matching:** NLP matching between global news and HK-listed ETFs.
-- **Factual AI Advisory Chatbot:** Grounded responses using official documentation to reduce hallucinations.
+The project now uses a consistent naming standard:
 
-The goal is to turn fragmented market information into actionable, explainable guidance for everyday investors.
+- folders: `lowercase_snake_case`
+- python files: `lowercase_snake_case.py`
+- generated ETF artifacts: `data/etf/...`
 
----
+Legacy uppercase paths are still supported in code for backward compatibility, but all new work should use lowercase paths.
 
-## 🛠 Technical Implementation & Optimization
-To handle the scale of **500,000+ document chunks**, the platform uses a sophisticated retrieval architecture specifically optimized for **Apple Silicon**.
+## What This Pipeline Produces
 
-### 1. Two-Stage "Retrieve & Re-rank" Pipeline
-Traditional keyword search is insufficient for dense financial text. This engine uses a dual-model approach:
-* **Stage 1: Semantic Retrieval (Bi-Encoder):** Uses `BAAI/bge-m3` to embed the entire corpus. This allows the system to understand that a news story about "Interest Rate Hikes" is relevant to "Money Market ETFs," even if the words don't match exactly.
-* **Stage 2: Contextual Re-ranking (Cross-Encoder):** The top candidates are re-scored by a `CrossEncoder` (`ms-marco-MiniLM-L-6-v2`). This model performs a deep comparison of the news headline against the document text to ensure precise relevance.
+- **Metadata export**: `data/etf/summary/ETP_Data_Export.xlsx`
+- **Downloaded PDF documents**: `data/etf/documentation/<TICKER>/pdf/*.pdf`
+- **Parsed text CSV files**: `data/etf/documentation/<TICKER>/csv/*.csv`
 
-### 2. Multi-Factor Metadata Boosting
-The engine doesn't just rely on AI; it integrates a **Financial Logic Layer**:
-* **Ticker Recognition:** Direct boosting when stock codes (e.g., `02800`) are detected in headlines.
-* **Thematic Alignment:** Dynamic weight increases if news content matches an ETF's **Asset Class**, **Investment Focus**, or **Geographic Focus** defined in the HKEX metadata.
+## Source Modules
 
-### 3. Hardware Acceleration (M2 Pro)
-Processing 560k chunks is computationally expensive. The system is engineered to maximize **M2 Pro** performance:
-* **MPS (Metal Performance Shaders):** Computation is offloaded to the Mac's GPU cores via `torch.backends.mps`, providing a 5-10x speedup over CPU-only processing.
-* **Persistent Vector Cache:** The high-cost embedding process is performed once and serialized to a `.pt` file, allowing the engine to initialize instantly in future sessions.
+- `src/hkex_etf/etf_metadata_export.py`  
+  Downloads HKEX ETP summary export file.
 
----
+- `src/hkex_etf/etf_document_scraper.py`  
+  Scrapes HKEX quote/news pages and downloads ETF PDFs.
 
-## Why This Project Matters
-Many HK retail investors exhibit home bias—over-concentrating portfolios in local equities and missing global diversification opportunities. This platform addresses that gap by combining machine learning, semantic search, and retrieval-augmented chat to support better decision-making.
+- `src/text_extraction/pdf_text_extractor.py`  
+  Extracts and cleans PDF text, then saves sentence-level CSV.
 
----
+- `src/etf_pipeline.py`  
+  New orchestrator entrypoint to run all stages in sequence.
 
-## Core Architecture
+## Project Layout
 
-| Task | Proposed Model | Why This Model |
-|---|---|---|
-| **ETF Classification** | Random Forest / XGBoost | Handles non-linear financial relationships better than basic linear models. |
-| **News Recommendation** | Bi-Encoder + Cross-Encoder | Balances retrieval speed with deep semantic accuracy. |
-| **Hardware Backend** | Apple Silicon (MPS) | Utilizes GPU cores of M-series chips for high-speed AI processing. |
-| **Chatbot Engine** | RAG (Retrieval-Augmented) | Grounds responses in trusted PDF documents to eliminate AI hallucinations. |
-
----
-
-## Data Strategy
-To ensure transparency and analytical depth, the pipeline integrates three data layers:
-
-### 1) Structured Financial Data
-- HKEX ETF metadata (fees, asset class, dividend policy).
-- Master lookup tables linking folder-based tickers to numeric stock codes.
-
-### 2) Market Time-Series Data
-- Yahoo Finance historical prices and volatility features.
-- True Total Return adjusted for dividend distributions.
-
-### 3) Unstructured Text Data
-- **Documentation:** Recursive ingestion of 560k+ text chunks from official ETF prospectuses partitioned by ticker folders.
-- **Market News:** Contextual news corpus indexed for semantic retrieval.
-
----
-
-## End-to-End Pipeline
-1.  **Data Ingestion:** Collect and standardize structured + unstructured sources across nested directories.
-2.  **Feature Engineering:** Compute risk/return features and generate 1024-dimensional text embeddings.
-3.  **Indexing:** Build a persistent vector index for the half-million chunk documentation corpus.
-4.  **Actionable Retrieval:** Match user intent or news context to specific ETFs using the **Boosted AI Search**.
-
----
-
-## Repository Structure
 ```text
-├── data/               
-│   ├── ETF/
-│   │   ├── documentation/     # Nested folders by Ticker (02800, 02801...)
-│   │   └── ETP_Metadata.csv   # Master ETF attributes
-├── models/             
-│   └── corpus_embeddings.pt   # Cached M2 Pro GPU embeddings
-├── notebooks/          # EDA and prototyping workflows
-├── src/                # Core application source code
-├── README.md           # Project documentation
-└── requirements.txt    # Python dependencies
+8017Group4.1/
+├── data/
+│   └── etf/
+│       ├── summary/
+│       │   └── ETP_Data_Export.xlsx
+│       └── documentation/
+│           └── 02801/
+│               ├── pdf/
+│               └── csv/
+├── src/
+│   ├── etf_pipeline.py
+│   ├── hkex_etf/
+│   │   ├── etf_metadata_export.py
+│   │   └── etf_document_scraper.py
+│   ├── text_extraction/
+│   │   └── pdf_text_extractor.py
+│   ├── market_data/
+│   └── model/
+└── README.md
 ```
 
----
+## Dependency Management (uv)
 
-## Getting Started
-### 1. Install Dependencies
-Ensure you are using a native **arm64** Python environment (3.11+ recommended).
+This project now uses `uv` and `pyproject.toml` (not `requirements.txt`).
+
+### 1) Install uv
+
 ```bash
-pip install torch torchvision torchaudio sentence-transformers pandas tqdm
+curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
-### 2. Run the Dashboard
+### 2) Create and sync environment
+
 ```bash
-python app.py
+uv sync
 ```
 
----
+### 3) Run commands with uv
+
+```bash
+uv run python src/etf_pipeline.py
+```
+
+### Common uv commands
+
+```bash
+uv add <package>        # add runtime dependency
+uv add --dev <package>  # add dev dependency
+uv lock                 # refresh lockfile
+uv sync                 # install from lock
+uv run <command>        # run command in managed env
+```
+
+## Run Options
+
+### Option A: Run complete pipeline (recommended)
+
+```bash
+uv run python src/etf_pipeline.py
+```
+
+Useful flags:
+
+```bash
+uv run python src/etf_pipeline.py --skip-export
+uv run python src/etf_pipeline.py --skip-documents
+uv run python src/etf_pipeline.py --skip-text-extract
+uv run python src/etf_pipeline.py --summary-file "data/etf/summary/ETP_Data_Export.xlsx"
+uv run python src/etf_pipeline.py --no-headless
+```
+
+### Option B: Run each stage directly
+
+Metadata export:
+
+```bash
+uv run python src/hkex_etf/etf_metadata_export.py
+```
+
+PDF scraping (expects `instruments.csv` in working directory when run directly):
+
+```bash
+uv run python src/hkex_etf/etf_document_scraper.py
+```
+
+PDF text extraction:
+
+```bash
+uv run python src/text_extraction/pdf_text_extractor.py
+```
+
+## Refactoring Notes
+
+- **Single canonical script layout**: duplicate wrapper modules were removed to avoid parallel implementations.
+- **Improved path dependency**: script paths now resolve from file location instead of current working directory whenever possible.
+- **Improved maintainability**:
+  - Added structured logging support.
+  - Added/expanded type hints and function docstrings.
+  - Improved variable naming clarity (`df_*` naming for DataFrames).
+- **Pipeline orchestration**: added `src/etf_pipeline.py` to make the data flow executable end-to-end in one command.
+- **Naming consistency**: standardized primary directories/files to lowercase snake_case.
+
+## Logging
+
+- Logs are written under `logs/` instead of project root.
+- Document scraping logs: `logs/etp_prospectus.log`.
+- PDF extraction logs: `logs/pdf_text_extractor.log`.
+
+## Operational Notes
+
+- Selenium requires a compatible Chrome/Chromium and driver setup.
+- HKEX page structure may evolve. If selectors fail, update the CSS/XPath selectors in scraper modules.
+- Downloaded file names for PDFs include ticker + timestamp + index + short title to reduce collisions.
 
 ## Disclaimer
-This platform is for educational and research demonstration purposes only and does not constitute financial advice.
+
+This project is for academic/research use and should not be considered financial advice.
