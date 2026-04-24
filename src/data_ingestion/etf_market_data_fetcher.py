@@ -8,12 +8,12 @@ import yfinance as yf
 
 def normalize_symbol(symbol: str) -> str:
     """Normalize HKEX symbol to 4-digit code used in folder names."""
-    return str(symbol).strip().zfill(4)
+    return str(symbol).strip()
 
 
 def to_yahoo_ticker(symbol: str) -> str:
     """Convert HKEX symbol to Yahoo Finance ticker format."""
-    return f"{normalize_symbol(symbol)}.HK"
+    return f"{normalize_symbol(symbol)}"
 
 
 def get_etf_root() -> Path:
@@ -95,7 +95,7 @@ def main() -> None:
     parser.add_argument(
         "--start-date",
         type=str,
-        default="2020-01-01",
+        default="2010-01-01",
         help="Start date for OHLCV download (YYYY-MM-DD).",
     )
     parser.add_argument(

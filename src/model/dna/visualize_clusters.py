@@ -15,6 +15,7 @@ from typing import Optional
 
 import matplotlib.pyplot as plt
 import pandas as pd
+import plotly.express as px
 
 logger = logging.getLogger(__name__)
 
@@ -34,11 +35,17 @@ class ClusterVisualizer:
         input_path: Optional[Path] = None,
         output_dir: Optional[Path] = None,
         annotate_points: bool = False,
+        plotly_html: bool = True,
+        show_point_text: bool = False,
+        show_cluster_centroids: bool = True,
     ) -> None:
         etf_root = _default_etf_data_root()
         self.input_path = input_path or etf_root / "processed" / "cluster_views" / "cluster_perspectives.parquet"
         self.output_dir = output_dir or etf_root / "processed" / "cluster_views" / "plots"
         self.annotate_points = annotate_points
+        self.plotly_html = plotly_html
+        self.show_point_text = show_point_text
+        self.show_cluster_centroids = show_cluster_centroids
 
     def _load_clusters(self) -> pd.DataFrame:
         logger.info("Loading cluster perspectives: %s", self.input_path)
@@ -81,6 +88,70 @@ class ClusterVisualizer:
         plt.close(fig)
         logger.info("Saved scatter plot: %s", output_path)
 
+    def _plot_scatter_plotly(self, df: pd.DataFrame, perspective: str) -> None:
+        df_plot = df.copy()
+        for col in ["stock_short_name", "geographic_focus", "ticker"]:
+            if col not in df_plot.columns:
+                df_plot[col] = ""
+            df_plot[col] = df_plot[col].fillna("").astype(str)
+
+        # Show ETF name + country directly on points as requested.
+        df_plot["label_text"] = (
+            df_plot["stock_short_name"].str.strip().replace("", "NA")
+            + " ("
+            + df_plot["geographic_focus"].str.strip().replace("", "NA")
+            + ")"
+        )
+
+        fig = px.scatter(
+            df_plot,
+            x="pc1",
+            y="pc2",
+            color=df_plot["cluster_id"].astype(str),
+            hover_data={
+                "ticker": True,
+                "stock_short_name": True,
+                "geographic_focus": True,
+                "cluster_id": True,
+                "pc1": ":.4f",
+                "pc2": ":.4f",
+            },
+            title=f"Financial DNA Cluster Map - {perspective}",
+            labels={"color": "Cluster ID", "pc1": "PC1", "pc2": "PC2"},
+        )
+        if self.show_point_text:
+            fig.update_traces(text=df_plot["label_text"], textposition="top center")
+
+        if self.show_cluster_centroids:
+            centroids = (
+                df_plot.groupby("cluster_id", dropna=False)[["pc1", "pc2"]]
+                .mean()
+                .reset_index()
+                .sort_values("cluster_id")
+            )
+            fig.add_scatter(
+                x=centroids["pc1"],
+                y=centroids["pc2"],
+                mode="markers+text",
+                text=[f"Cluster {int(cid)}" for cid in centroids["cluster_id"]],
+                textposition="top center",
+                marker={"size": 14, "symbol": "x", "color": "black"},
+                name="Cluster Center",
+                hoverinfo="skip",
+            )
+
+        fig.update_traces(marker={"size": 9, "opacity": 0.82})
+        fig.update_layout(
+            height=760,
+            width=1200,
+            template="plotly_white",
+            legend_title_text="Cluster ID",
+        )
+
+        html_path = self.output_dir / f"{perspective}_pc_scatter.html"
+        fig.write_html(html_path)
+        logger.info("Saved interactive plotly scatter: %s", html_path)
+
     def _save_cluster_size_summary(self, df: pd.DataFrame) -> None:
         summary = (
             df.groupby(["perspective", "cluster_id"], dropna=False)
@@ -115,6 +186,8 @@ class ClusterVisualizer:
                 logger.warning("Skipping %s: pc1/pc2 missing.", perspective)
                 continue
             self._plot_scatter(chunk.copy(), perspective=perspective)
+            if self.plotly_html:
+                self._plot_scatter_plotly(chunk.copy(), perspective=perspective)
 
         self._save_cluster_size_summary(df)
 
@@ -128,6 +201,21 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Annotate scatter points with ticker labels (can be crowded for many ETFs)",
     )
+    parser.add_argument(
+        "--no-plotly-html",
+        action="store_true",
+        help="Disable interactive plotly HTML scatter export",
+    )
+    parser.add_argument(
+        "--show-point-text",
+        action="store_true",
+        help="Show ETF name+country text directly on every point (can be crowded)",
+    )
+    parser.add_argument(
+        "--no-cluster-centroids",
+        action="store_true",
+        help="Disable centroid markers and labels",
+    )
     return parser.parse_args()
 
 
@@ -138,6 +226,9 @@ def main() -> None:
         input_path=args.input_path,
         output_dir=args.output_dir,
         annotate_points=args.annotate_points,
+        plotly_html=not args.no_plotly_html,
+        show_point_text=args.show_point_text,
+        show_cluster_centroids=not args.no_cluster_centroids,
     )
     visualizer.run()
 
