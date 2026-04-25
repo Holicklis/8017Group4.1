@@ -63,6 +63,10 @@ def _default_etf_data_root() -> Path:
     return data_root / "etf" if (data_root / "etf").exists() else data_root / "ETF"
 
 
+def _default_model_output_root() -> Path:
+    return _project_root() / "model_output" / "dna"
+
+
 def _to_hkex_code(value: object) -> Optional[str]:
     if pd.isna(value):
         return None
@@ -114,9 +118,10 @@ class ETFDataProcessor:
         macro_min_overlap_days: int = TRADING_DAYS_PER_YEAR,
     ) -> None:
         etf_root = _default_etf_data_root()
+        model_output_root = _default_model_output_root()
         self.metadata_path = metadata_path or etf_root / "summary" / "ETP_Data_Export.xlsx"
         self.ohlcv_dir = ohlcv_dir or etf_root / "ohlcv"
-        self.output_path = output_path or etf_root / "processed" / "financial_dna.parquet"
+        self.output_path = output_path or model_output_root / "financial_dna.parquet"
         self.instruments_path = instruments_path or etf_root / "instruments" / "all_hk_etf.csv"
         self.benchmark_dir = benchmark_dir or self.ohlcv_dir
         self.holdings_dir = holdings_dir or etf_root / "holdings" / "top10"

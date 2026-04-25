@@ -18,7 +18,7 @@ def to_yahoo_ticker(symbol: str) -> str:
 
 def get_etf_root() -> Path:
     """Get ETF data root, supporting both etf/ and ETF/ directories."""
-    project_root = Path(__file__).resolve().parents[2]
+    project_root = Path(__file__).resolve().parents[4]
     data_root = project_root / "data"
     return data_root / "etf" if (data_root / "etf").exists() else data_root / "ETF"
 
@@ -89,7 +89,7 @@ def main() -> None:
     parser.add_argument(
         "--csv",
         type=Path,
-        default=Path(__file__).resolve().parents[2] / "data" / "etf" / "instruments" / "all_hk_etf.csv",
+        default=Path(__file__).resolve().parents[4] / "data" / "etf" / "instruments" / "all_hk_etf.csv",
         help="Path to CSV containing a ticker column named 'instruments'.",
     )
     parser.add_argument(

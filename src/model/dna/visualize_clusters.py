@@ -29,6 +29,10 @@ def _default_etf_data_root() -> Path:
     return data_root / "etf" if (data_root / "etf").exists() else data_root / "ETF"
 
 
+def _default_model_output_root() -> Path:
+    return _project_root() / "model_output" / "dna"
+
+
 class ClusterVisualizer:
     def __init__(
         self,
@@ -39,9 +43,9 @@ class ClusterVisualizer:
         show_point_text: bool = False,
         show_cluster_centroids: bool = True,
     ) -> None:
-        etf_root = _default_etf_data_root()
-        self.input_path = input_path or etf_root / "processed" / "cluster_views" / "cluster_perspectives.parquet"
-        self.output_dir = output_dir or etf_root / "processed" / "cluster_views" / "plots"
+        model_output_root = _default_model_output_root()
+        self.input_path = input_path or model_output_root / "cluster_views" / "cluster_perspectives.parquet"
+        self.output_dir = output_dir or model_output_root / "cluster_views" / "plots"
         self.annotate_points = annotate_points
         self.plotly_html = plotly_html
         self.show_point_text = show_point_text

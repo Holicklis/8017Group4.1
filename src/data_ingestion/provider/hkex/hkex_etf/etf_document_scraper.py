@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 def _project_root() -> Path:
     """Return project root based on this file location."""
-    return Path(__file__).resolve().parents[2]
+    return Path(__file__).resolve().parents[5]
 
 
 def _default_log_file() -> Path:
@@ -174,7 +174,7 @@ def scrape_many_tickers(tickers: Sequence[Union[str, int]], headless: bool = Tru
 
 if __name__ == "__main__":
     configure_logging()
-    default_csv = _project_root() / "data" / "etf" / "instruments" / "all_hkd_etf.csv"
+    default_csv = _project_root() / "data" / "etf" / "instruments" / "all_hk_etf.csv"
     if default_csv.exists():
         ticker_values = load_tickers_from_csv(default_csv, column="instruments")
         scrape_many_tickers(ticker_values, headless=True)

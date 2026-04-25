@@ -13,7 +13,7 @@ DEFAULT_FILENAME = "ETP_Data_Export.xlsx"
 
 def _project_root() -> Path:
     """Return project root based on this file location."""
-    return Path(__file__).resolve().parents[2]
+    return Path(__file__).resolve().parents[5]
 
 
 def _default_summary_dir() -> Path:

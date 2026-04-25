@@ -32,6 +32,10 @@ def _default_etf_data_root() -> Path:
     return data_root / "etf" if (data_root / "etf").exists() else data_root / "ETF"
 
 
+def _default_model_output_root() -> Path:
+    return _project_root() / "model_output" / "dna"
+
+
 class MultiClusterPCAEngine:
     """Run PCA + KMeans for one or multiple feature perspectives."""
 
@@ -50,9 +54,9 @@ class MultiClusterPCAEngine:
         return_risk_k: Optional[int] = None,
         random_state: int = 42,
     ) -> None:
-        etf_root = _default_etf_data_root()
-        self.input_path = input_path or etf_root / "processed" / "financial_dna.parquet"
-        self.output_dir = output_dir or etf_root / "processed" / "cluster_views"
+        model_output_root = _default_model_output_root()
+        self.input_path = input_path or model_output_root / "financial_dna.parquet"
+        self.output_dir = output_dir or model_output_root / "cluster_views"
         self.variance_threshold = variance_threshold
         self.n_clusters = n_clusters
         self.auto_select_k = auto_select_k

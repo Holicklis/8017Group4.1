@@ -53,7 +53,7 @@ def fetch_top_holdings(yahoo_ticker: str, folder_ticker: str) -> pd.DataFrame:
 
 
 def resolve_default_output_path(ticker_symbol: str) -> Path:
-    project_root = Path(__file__).resolve().parents[2]
+    project_root = Path(__file__).resolve().parents[4]
     output_dir = project_root / "data" / "etf" / "holdings" / "top10" / ticker_symbol
     output_dir.mkdir(parents=True, exist_ok=True)
     return output_dir / "top_holdings.parquet"
@@ -97,7 +97,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--csv",
         type=Path,
-        default=Path(__file__).resolve().parents[2] / "data" / "etf" / "instruments" / "all_hk_etf.csv",
+        default=Path(__file__).resolve().parents[4] / "data" / "etf" / "instruments" / "all_hk_etf.csv",
         help="Path to instruments CSV (default: data/etf/instruments/all_hk_etf.csv).",
     )
     parser.add_argument(
