@@ -26,15 +26,15 @@ Identify hidden structural relationships between HK ETFs using empirical behavio
 - **Data engineering module**: `src/model/dna/data_engine.py`
   - Loads ETF universe and harmonizes ticker-level data.
   - Engineers return, volatility, yield, concentration, and cross-asset relationship features.
-  - Produces `data/etf/processed/financial_dna.parquet`.
+  - Produces `model_output/dna/financial_dna.parquet`.
 - **Clustering module**: `src/model/dna/model_core.py`
   - Standardization: `StandardScaler`.
   - Dimensionality reduction: `PCA` with configurable variance threshold.
   - Clustering: `KMeans` with silhouette-based auto-k selection logic.
-  - Outputs perspective-level cluster artifacts to `data/etf/processed/cluster_views/`.
+  - Outputs perspective-level cluster artifacts to `model_output/dna/cluster_views/`.
 - **Advisory layer**: `src/model/dna/advisory_logic.py`
   - Converts cluster geometry into actionable candidate sets.
-  - Writes outputs to `data/etf/processed/advisory/`.
+  - Writes outputs to `model_output/dna/advisory/`.
 
 **Value Add**  
 Detects false diversification, highlights mathematically similar alternatives, and supports lower-cost global substitution analysis.
@@ -65,7 +65,7 @@ Bridge ETF risk disclosures with real-world narratives and event flow.
 - Source extraction: `src/text_extraction/pdf_text_extractor.py`
   - PDF cleanup and sentence normalization
   - keyword-based risk/component tagging
-  - per-ETF profile generation (`etf_profiles.csv`)
+  - per-ETF profile generation (`model_output/synpse/etf_profiles.csv`)
 - Retrieval core: `src/model/synapse/model.py`
   - profile-level corpus (one row per ticker)
   - cache-versioned embeddings
@@ -74,8 +74,9 @@ Bridge ETF risk disclosures with real-world narratives and event flow.
   - run on full news CSVs
   - export top-k matches + score diagnostics + visual artifacts
 - Stability testing: `src/model/synapse/semantic_clustering_stability.py`
-  - synthetic paraphrase stress test
-  - top-5 consistency and stability scoring
+  - strict paraphrase stress test (`100 concepts x 20 rewrites` default)
+  - top-k overlap + tie-aware stability + score-correlation diagnostics
+  - optional light reranking and query canonicalization for robustness checks
 
 **No External API Principle**  
 - Synapse avoids external API dependency for scoring/tagging:
@@ -130,10 +131,18 @@ Delivers a personalized "Global Navigator" experience that converts technical an
 │       │   └── top10/
 │       ├── documentation/
 │       │   └── <ticker>/{pdf,csv}/
-│       └── processed/
-│           ├── financial_dna.parquet
-│           ├── cluster_views/
-│           └── advisory/
+├── model_output/
+│   ├── dna/
+│   │   ├── financial_dna.parquet
+│   │   ├── cluster_views/
+│   │   └── advisory/
+│   ├── synpse/
+│   │   ├── etf_profiles.csv
+│   │   ├── cache/
+│   │   ├── benchmark_side_by_side_*.json
+│   │   ├── news_events_run_*/
+│   │   └── stability_run_*/
+│   └── Synthesis/
 ├── src/
 │   ├── etf_pipeline.py
 │   ├── data_ingestion/
@@ -172,14 +181,14 @@ Delivers a personalized "Global Navigator" experience that converts technical an
 2. Build corpus for semantic indexing and retrieval.
 
 ### Step 3: Financial DNA Modeling
-1. Engineer feature matrix (`financial_dna.parquet`).
+1. Engineer feature matrix (`model_output/dna/financial_dna.parquet`).
 2. Run PCA + K-Means by perspective.
 3. Generate advisory artifacts (home-bias and hidden-twin candidates).
 
 ### Step 4: Synapse Intelligence
-1. Embed documentation text.
-2. Match external narratives/headlines via cosine similarity.
-3. Produce risk-alignment signals.
+1. Build ETF profile corpus in `model_output/synpse/`.
+2. Embed documentation text and retrieve by semantic relevance.
+3. Optionally add sentiment and stability diagnostics.
 
 ### Step 5: Financial Synthesis
 1. Merge quantitative and semantic evidence.
@@ -221,6 +230,11 @@ uv run python src/model/dna/advisory_logic.py
 uv run python src/model/dna/visualize_clusters.py
 ```
 
+Run the full DNA pipeline in one command:
+```bash
+uv run python src/model/dna/run.py
+```
+
 ### 4) Run Data Fetchers Individually
 ```bash
 uv run python src/data_ingestion/provider/yfinance/etf_market_data_fetcher.py
@@ -253,8 +267,26 @@ uv run python src/model/synapse/semantic_clustering_stability.py \
   --corpus-mode profile \
   --top-k 5 \
   --num-concepts 100 \
-  --variants-per-concept 20
+  --variants-per-concept 20 \
+  --tie-epsilon 0.01 \
+  --enable-light-rerank \
+  --cross-top-n 12
 ```
+
+Run the full Synapse pipeline (benchmark + news + stability) in one command:
+```bash
+uv run python src/model/synapse/run.py
+```
+
+Run the Synthesis model entrypoint:
+```bash
+uv run python src/model/synthesis/run.py
+```
+
+Default model outputs now go to:
+- `model_output/dna/...`
+- `model_output/synpse/...`
+- `model_output/Synthesis/...`
 
 ## 🎓 Academic Foundation
 This project is developed in an HKU academic context and is grounded in quantitative portfolio research.  
