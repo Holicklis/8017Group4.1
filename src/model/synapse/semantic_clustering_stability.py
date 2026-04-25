@@ -6,6 +6,7 @@ import sys
 from dataclasses import dataclass
 from datetime import datetime
 from itertools import combinations
+import math
 from pathlib import Path
 from typing import Dict, List, Sequence
 
@@ -176,6 +177,13 @@ def _safe_corr(values_a: Sequence[float], values_b: Sequence[float], method: str
     return float(corr)
 
 
+def _finite_mean(values: Sequence[float]) -> float:
+    cleaned = [float(value) for value in values if pd.notna(value) and math.isfinite(float(value))]
+    if not cleaned:
+        return 0.0
+    return float(sum(cleaned) / len(cleaned))
+
+
 def _evaluate_stability(df_predictions: pd.DataFrame, top_k: int, tie_epsilon: float = 0.01) -> Dict[str, pd.DataFrame]:
     concept_rows: List[Dict[str, object]] = []
     for concept_id, concept_group in df_predictions.groupby("concept_id"):
@@ -238,20 +246,14 @@ def _evaluate_stability(df_predictions: pd.DataFrame, top_k: int, tie_epsilon: f
             {
                 "concept_id": int(concept_id),
                 "domain": domain,
-                "avg_topk_jaccard": round(float(sum(pairwise_jaccard) / len(pairwise_jaccard)), 4),
+                "avg_topk_jaccard": round(_finite_mean(pairwise_jaccard), 4),
                 "top1_consistency": round(float(top1_consistency), 4),
-                "avg_score_corr_ticker_pearson": round(
-                    float(sum(pairwise_score_corr_pearson) / len(pairwise_score_corr_pearson)), 4
-                ),
-                "avg_score_corr_ticker_spearman": round(
-                    float(sum(pairwise_score_corr_spearman) / len(pairwise_score_corr_spearman)), 4
-                ),
-                "avg_rank_score_corr": round(float(sum(pairwise_rank_score_corr) / len(pairwise_rank_score_corr)), 4),
-                "avg_score_gap_delta": round(float(sum(pairwise_gap_delta) / len(pairwise_gap_delta)), 4),
-                "avg_score_spread": round(float(sum(score_spreads) / len(score_spreads)), 4) if score_spreads else 0.0,
-                "avg_tie_bucket_jaccard": round(
-                    float(sum(pairwise_tie_bucket_jaccard) / len(pairwise_tie_bucket_jaccard)), 4
-                ),
+                "avg_score_corr_ticker_pearson": round(_finite_mean(pairwise_score_corr_pearson), 4),
+                "avg_score_corr_ticker_spearman": round(_finite_mean(pairwise_score_corr_spearman), 4),
+                "avg_rank_score_corr": round(_finite_mean(pairwise_rank_score_corr), 4),
+                "avg_score_gap_delta": round(_finite_mean(pairwise_gap_delta), 4),
+                "avg_score_spread": round(_finite_mean(score_spreads), 4) if score_spreads else 0.0,
+                "avg_tie_bucket_jaccard": round(_finite_mean(pairwise_tie_bucket_jaccard), 4),
                 "variants": int(len(topk_lists)),
             }
         )

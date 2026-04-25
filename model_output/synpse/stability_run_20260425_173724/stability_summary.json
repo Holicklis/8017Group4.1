@@ -1,0 +1,32 @@
+{
+  "output_dir": "/Users/hunglun/Library/Mobile Documents/com~apple~CloudDocs/Study/HKU_STAT/2025_Sem2/STAT8020/Project/8017Group4.1/model_output/synpse/stability_run_20260425_173724",
+  "preset": "fast",
+  "corpus_mode": "profile",
+  "top_k": 5,
+  "num_concepts": 100,
+  "variants_per_concept": 20,
+  "tie_epsilon": 0.01,
+  "use_light_rerank": true,
+  "cross_top_n": 12,
+  "apply_query_canonicalization": true,
+  "synthetic_rows": 2000,
+  "prediction_rows": 10000,
+  "overall_avg_topk_jaccard": 0.526,
+  "overall_avg_top1_consistency": 0.5405,
+  "overall_avg_tie_bucket_jaccard": 0.7405,
+  "overall_avg_score_corr_ticker_pearson": -0.1267,
+  "overall_avg_score_corr_ticker_spearman": -0.1267,
+  "overall_avg_rank_score_corr": 0.0,
+  "overall_avg_score_gap_delta": NaN,
+  "overall_avg_score_spread": NaN,
+  "synthetic_csv": "/Users/hunglun/Library/Mobile Documents/com~apple~CloudDocs/Study/HKU_STAT/2025_Sem2/STAT8020/Project/8017Group4.1/model_output/synpse/stability_run_20260425_173724/synthetic_financial_headlines.csv",
+  "predictions_csv": "/Users/hunglun/Library/Mobile Documents/com~apple~CloudDocs/Study/HKU_STAT/2025_Sem2/STAT8020/Project/8017Group4.1/model_output/synpse/stability_run_20260425_173724/stability_topk_predictions.csv",
+  "concept_stability_csv": "/Users/hunglun/Library/Mobile Documents/com~apple~CloudDocs/Study/HKU_STAT/2025_Sem2/STAT8020/Project/8017Group4.1/model_output/synpse/stability_run_20260425_173724/concept_stability.csv",
+  "domain_stability_csv": "/Users/hunglun/Library/Mobile Documents/com~apple~CloudDocs/Study/HKU_STAT/2025_Sem2/STAT8020/Project/8017Group4.1/model_output/synpse/stability_run_20260425_173724/domain_stability.csv",
+  "plots": {
+    "stability_jaccard_histogram_png": "/Users/hunglun/Library/Mobile Documents/com~apple~CloudDocs/Study/HKU_STAT/2025_Sem2/STAT8020/Project/8017Group4.1/model_output/synpse/stability_run_20260425_173724/stability_jaccard_histogram.png",
+    "stability_by_domain_png": "/Users/hunglun/Library/Mobile Documents/com~apple~CloudDocs/Study/HKU_STAT/2025_Sem2/STAT8020/Project/8017Group4.1/model_output/synpse/stability_run_20260425_173724/stability_by_domain.png",
+    "concept_stability_map_html": "/Users/hunglun/Library/Mobile Documents/com~apple~CloudDocs/Study/HKU_STAT/2025_Sem2/STAT8020/Project/8017Group4.1/model_output/synpse/stability_run_20260425_173724/concept_stability_map.html",
+    "stability_score_correlation_histogram_png": "/Users/hunglun/Library/Mobile Documents/com~apple~CloudDocs/Study/HKU_STAT/2025_Sem2/STAT8020/Project/8017Group4.1/model_output/synpse/stability_run_20260425_173724/stability_score_correlation_histogram.png"
+  }
+}

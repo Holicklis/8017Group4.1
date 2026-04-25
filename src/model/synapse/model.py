@@ -312,15 +312,26 @@ class ETFNewsEngine:
             if pairs:
                 predictions = self.cross_encoder.predict(pairs)
                 for hit, raw_score in zip(top_for_cross, predictions):
-                    cross_scores[hit["corpus_id"]] = self._sigmoid(float(raw_score))
+                    score_value = float(raw_score)
+                    if not math.isfinite(score_value):
+                        score_value = 0.0
+                    cross_scores[hit["corpus_id"]] = self._sigmoid(score_value)
 
         for hit in hits:
             corpus_id = int(hit["corpus_id"])
             row = self.docs_df.iloc[corpus_id]
             bi_score = float(hit["score"])
+            if not math.isfinite(bi_score):
+                bi_score = 0.0
             cross_score = cross_scores.get(corpus_id, 0.0)
+            if not math.isfinite(cross_score):
+                cross_score = 0.0
             meta_boost = self._calculate_boost(normalized_query, row)
+            if not math.isfinite(meta_boost):
+                meta_boost = 0.0
             final_score = bi_score + meta_boost + (self.preset.cross_encoder_weight * cross_score)
+            if not math.isfinite(final_score):
+                final_score = bi_score + meta_boost
 
             scored_results.append(
                 {

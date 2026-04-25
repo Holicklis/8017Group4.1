@@ -1,0 +1,251 @@
+﻿concept_id,domain,variant_id,headline,rank,predicted_ticker,final_score
+1,equity,1,earnings season update is signaling earnings downgrade for regional equity baskets.,1,03039,0.952739
+1,equity,1,earnings season update is signaling earnings downgrade for regional equity baskets.,2,03115,0.952561
+1,equity,1,earnings season update is signaling earnings downgrade for regional equity baskets.,3,03136,0.950277
+1,equity,1,earnings season update is signaling earnings downgrade for regional equity baskets.,4,03031,0.94965
+1,equity,1,earnings season update is signaling earnings downgrade for regional equity baskets.,5,03416,0.949343
+1,equity,2,regional equity baskets are reacting as earnings season update points to earnings downgrade.,1,03039,0.964323
+1,equity,2,regional equity baskets are reacting as earnings season update points to earnings downgrade.,2,02805,0.957945
+1,equity,2,regional equity baskets are reacting as earnings season update points to earnings downgrade.,3,03416,0.95794
+1,equity,2,regional equity baskets are reacting as earnings season update points to earnings downgrade.,4,03031,0.957634
+1,equity,2,regional equity baskets are reacting as earnings season update points to earnings downgrade.,5,03115,0.957559
+1,equity,3,"earnings season update now suggests earnings downgrade, putting pressure on regional equity baskets.",1,03039,0.95623
+1,equity,3,"earnings season update now suggests earnings downgrade, putting pressure on regional equity baskets.",2,03115,0.951453
+1,equity,3,"earnings season update now suggests earnings downgrade, putting pressure on regional equity baskets.",3,03031,0.948728
+1,equity,3,"earnings season update now suggests earnings downgrade, putting pressure on regional equity baskets.",4,03469,0.947589
+1,equity,3,"earnings season update now suggests earnings downgrade, putting pressure on regional equity baskets.",5,03056,0.947381
+1,equity,4,regional equity baskets are being repriced because earnings season update indicates earnings downgrade.,1,03039,0.961734
+1,equity,4,regional equity baskets are being repriced because earnings season update indicates earnings downgrade.,2,03136,0.958234
+1,equity,4,regional equity baskets are being repriced because earnings season update indicates earnings downgrade.,3,03165,0.957943
+1,equity,4,regional equity baskets are being repriced because earnings season update indicates earnings downgrade.,4,03469,0.956611
+1,equity,4,regional equity baskets are being repriced because earnings season update indicates earnings downgrade.,5,03031,0.95656
+1,equity,5,"earnings downgrade is being signaled by earnings season update, affecting regional equity baskets.",1,03039,0.957059
+1,equity,5,"earnings downgrade is being signaled by earnings season update, affecting regional equity baskets.",2,03115,0.953899
+1,equity,5,"earnings downgrade is being signaled by earnings season update, affecting regional equity baskets.",3,03416,0.950815
+1,equity,5,"earnings downgrade is being signaled by earnings season update, affecting regional equity baskets.",4,03031,0.950215
+1,equity,5,"earnings downgrade is being signaled by earnings season update, affecting regional equity baskets.",5,02805,0.950103
+2,rates,1,central bank policy statement is signaling rate hike expectations for duration-sensitive bond exposures.,1,03077,0.964156
+2,rates,1,central bank policy statement is signaling rate hike expectations for duration-sensitive bond exposures.,2,03031,0.954077
+2,rates,1,central bank policy statement is signaling rate hike expectations for duration-sensitive bond exposures.,3,03471,0.951964
+2,rates,1,central bank policy statement is signaling rate hike expectations for duration-sensitive bond exposures.,4,03056,0.950056
+2,rates,1,central bank policy statement is signaling rate hike expectations for duration-sensitive bond exposures.,5,03112,0.948334
+2,rates,2,duration-sensitive bond exposures are reacting as central bank policy statement points to rate hike expectations.,1,03077,0.967888
+2,rates,2,duration-sensitive bond exposures are reacting as central bank policy statement points to rate hike expectations.,2,03056,0.958377
+2,rates,2,duration-sensitive bond exposures are reacting as central bank policy statement points to rate hike expectations.,3,03112,0.957099
+2,rates,2,duration-sensitive bond exposures are reacting as central bank policy statement points to rate hike expectations.,4,03031,0.955621
+2,rates,2,duration-sensitive bond exposures are reacting as central bank policy statement points to rate hike expectations.,5,03471,0.953598
+2,rates,3,"central bank policy statement now suggests rate hike expectations, putting pressure on duration-sensitive bond exposures.",1,03077,0.948243
+2,rates,3,"central bank policy statement now suggests rate hike expectations, putting pressure on duration-sensitive bond exposures.",2,03056,0.944498
+2,rates,3,"central bank policy statement now suggests rate hike expectations, putting pressure on duration-sensitive bond exposures.",3,03112,0.943011
+2,rates,3,"central bank policy statement now suggests rate hike expectations, putting pressure on duration-sensitive bond exposures.",4,03031,0.939542
+2,rates,3,"central bank policy statement now suggests rate hike expectations, putting pressure on duration-sensitive bond exposures.",5,03081,0.936925
+2,rates,4,duration-sensitive bond exposures are being repriced because central bank policy statement indicates rate hike expectations.,1,03031,0.960298
+2,rates,4,duration-sensitive bond exposures are being repriced because central bank policy statement indicates rate hike expectations.,2,03056,0.957938
+2,rates,4,duration-sensitive bond exposures are being repriced because central bank policy statement indicates rate hike expectations.,3,03112,0.956163
+2,rates,4,duration-sensitive bond exposures are being repriced because central bank policy statement indicates rate hike expectations.,4,03077,0.95547
+2,rates,4,duration-sensitive bond exposures are being repriced because central bank policy statement indicates rate hike expectations.,5,03039,0.955283
+2,rates,5,"rate hike expectations is being signaled by central bank policy statement, affecting duration-sensitive bond exposures.",1,03077,0.965169
+2,rates,5,"rate hike expectations is being signaled by central bank policy statement, affecting duration-sensitive bond exposures.",2,03056,0.956454
+2,rates,5,"rate hike expectations is being signaled by central bank policy statement, affecting duration-sensitive bond exposures.",3,03112,0.954996
+2,rates,5,"rate hike expectations is being signaled by central bank policy statement, affecting duration-sensitive bond exposures.",4,03457,0.95462
+2,rates,5,"rate hike expectations is being signaled by central bank policy statement, affecting duration-sensitive bond exposures.",5,03031,0.952623
+3,commodity,1,commodity market briefing is signaling raw material shortage for commodity-linked holdings.,1,03081,1.056861
+3,commodity,1,commodity market briefing is signaling raw material shortage for commodity-linked holdings.,2,03047,1.050412
+3,commodity,1,commodity market briefing is signaling raw material shortage for commodity-linked holdings.,3,03175,1.05023
+3,commodity,1,commodity market briefing is signaling raw material shortage for commodity-linked holdings.,4,02840,1.049278
+3,commodity,1,commodity market briefing is signaling raw material shortage for commodity-linked holdings.,5,03097,0.987773
+3,commodity,2,commodity-linked holdings are reacting as commodity market briefing points to raw material shortage.,1,03081,1.055085
+3,commodity,2,commodity-linked holdings are reacting as commodity market briefing points to raw material shortage.,2,02840,1.050869
+3,commodity,2,commodity-linked holdings are reacting as commodity market briefing points to raw material shortage.,3,03175,1.050373
+3,commodity,2,commodity-linked holdings are reacting as commodity market briefing points to raw material shortage.,4,03047,1.047051
+3,commodity,2,commodity-linked holdings are reacting as commodity market briefing points to raw material shortage.,5,03112,0.960101
+3,commodity,3,"commodity market briefing now suggests raw material shortage, putting pressure on commodity-linked holdings.",1,03081,1.050682
+3,commodity,3,"commodity market briefing now suggests raw material shortage, putting pressure on commodity-linked holdings.",2,02840,1.04016
+3,commodity,3,"commodity market briefing now suggests raw material shortage, putting pressure on commodity-linked holdings.",3,03175,1.038374
+3,commodity,3,"commodity market briefing now suggests raw material shortage, putting pressure on commodity-linked holdings.",4,03047,0.976906
+3,commodity,3,"commodity market briefing now suggests raw material shortage, putting pressure on commodity-linked holdings.",5,03112,0.957634
+3,commodity,4,commodity-linked holdings are being repriced because commodity market briefing indicates raw material shortage.,1,03175,1.060996
+3,commodity,4,commodity-linked holdings are being repriced because commodity market briefing indicates raw material shortage.,2,03081,1.060343
+3,commodity,4,commodity-linked holdings are being repriced because commodity market briefing indicates raw material shortage.,3,03097,1.057558
+3,commodity,4,commodity-linked holdings are being repriced because commodity market briefing indicates raw material shortage.,4,02840,0.995001
+3,commodity,4,commodity-linked holdings are being repriced because commodity market briefing indicates raw material shortage.,5,03112,0.970011
+3,commodity,5,"raw material shortage is being signaled by commodity market briefing, affecting commodity-linked holdings.",1,03081,1.055141
+3,commodity,5,"raw material shortage is being signaled by commodity market briefing, affecting commodity-linked holdings.",2,02840,1.044553
+3,commodity,5,"raw material shortage is being signaled by commodity market briefing, affecting commodity-linked holdings.",3,03175,1.043739
+3,commodity,5,"raw material shortage is being signaled by commodity market briefing, affecting commodity-linked holdings.",4,03047,0.982548
+3,commodity,5,"raw material shortage is being signaled by commodity market briefing, affecting commodity-linked holdings.",5,03112,0.958089
+4,crypto,1,crypto regulation hearing is signaling bitcoin volatility for crypto and digital-asset proxies.,1,02818,0.865604
+4,crypto,1,crypto regulation hearing is signaling bitcoin volatility for crypto and digital-asset proxies.,2,03085,0.848489
+4,crypto,1,crypto regulation hearing is signaling bitcoin volatility for crypto and digital-asset proxies.,3,03042,0.847526
+4,crypto,1,crypto regulation hearing is signaling bitcoin volatility for crypto and digital-asset proxies.,4,03056,0.84414
+4,crypto,1,crypto regulation hearing is signaling bitcoin volatility for crypto and digital-asset proxies.,5,03112,0.84322
+4,crypto,2,crypto and digital-asset proxies are reacting as crypto regulation hearing points to bitcoin volatility.,1,02818,0.860675
+4,crypto,2,crypto and digital-asset proxies are reacting as crypto regulation hearing points to bitcoin volatility.,2,03042,0.845767
+4,crypto,2,crypto and digital-asset proxies are reacting as crypto regulation hearing points to bitcoin volatility.,3,03085,0.845048
+4,crypto,2,crypto and digital-asset proxies are reacting as crypto regulation hearing points to bitcoin volatility.,4,03056,0.843132
+4,crypto,2,crypto and digital-asset proxies are reacting as crypto regulation hearing points to bitcoin volatility.,5,03112,0.842389
+4,crypto,3,"crypto regulation hearing now suggests bitcoin volatility, putting pressure on crypto and digital-asset proxies.",1,02818,0.854663
+4,crypto,3,"crypto regulation hearing now suggests bitcoin volatility, putting pressure on crypto and digital-asset proxies.",2,03042,0.842453
+4,crypto,3,"crypto regulation hearing now suggests bitcoin volatility, putting pressure on crypto and digital-asset proxies.",3,03056,0.840354
+4,crypto,3,"crypto regulation hearing now suggests bitcoin volatility, putting pressure on crypto and digital-asset proxies.",4,03112,0.839794
+4,crypto,3,"crypto regulation hearing now suggests bitcoin volatility, putting pressure on crypto and digital-asset proxies.",5,03085,0.837071
+4,crypto,4,crypto and digital-asset proxies are being repriced because crypto regulation hearing indicates bitcoin volatility.,1,02818,0.862992
+4,crypto,4,crypto and digital-asset proxies are being repriced because crypto regulation hearing indicates bitcoin volatility.,2,03042,0.850893
+4,crypto,4,crypto and digital-asset proxies are being repriced because crypto regulation hearing indicates bitcoin volatility.,3,03085,0.850515
+4,crypto,4,crypto and digital-asset proxies are being repriced because crypto regulation hearing indicates bitcoin volatility.,4,03056,0.848475
+4,crypto,4,crypto and digital-asset proxies are being repriced because crypto regulation hearing indicates bitcoin volatility.,5,03039,0.848363
+4,crypto,5,"bitcoin volatility is being signaled by crypto regulation hearing, affecting crypto and digital-asset proxies.",1,02818,0.864251
+4,crypto,5,"bitcoin volatility is being signaled by crypto regulation hearing, affecting crypto and digital-asset proxies.",2,03042,0.84671
+4,crypto,5,"bitcoin volatility is being signaled by crypto regulation hearing, affecting crypto and digital-asset proxies.",3,03085,0.846209
+4,crypto,5,"bitcoin volatility is being signaled by crypto regulation hearing, affecting crypto and digital-asset proxies.",4,03056,0.842023
+4,crypto,5,"bitcoin volatility is being signaled by crypto regulation hearing, affecting crypto and digital-asset proxies.",5,03129,0.841178
+5,fx,1,FX reserve update is signaling rmb weakness for currency-sensitive allocations.,1,03003,0.991758
+5,fx,1,FX reserve update is signaling rmb weakness for currency-sensitive allocations.,2,03034,0.987353
+5,fx,1,FX reserve update is signaling rmb weakness for currency-sensitive allocations.,3,03109,0.984358
+5,fx,1,FX reserve update is signaling rmb weakness for currency-sensitive allocations.,4,02839,0.98345
+5,fx,1,FX reserve update is signaling rmb weakness for currency-sensitive allocations.,5,02817,0.982891
+5,fx,2,currency-sensitive allocations are reacting as FX reserve update points to rmb weakness.,1,03003,0.993691
+5,fx,2,currency-sensitive allocations are reacting as FX reserve update points to rmb weakness.,2,03034,0.987486
+5,fx,2,currency-sensitive allocations are reacting as FX reserve update points to rmb weakness.,3,03109,0.987319
+5,fx,2,currency-sensitive allocations are reacting as FX reserve update points to rmb weakness.,4,02839,0.985886
+5,fx,2,currency-sensitive allocations are reacting as FX reserve update points to rmb weakness.,5,03056,0.985737
+5,fx,3,"FX reserve update now suggests rmb weakness, putting pressure on currency-sensitive allocations.",1,03003,0.973298
+5,fx,3,"FX reserve update now suggests rmb weakness, putting pressure on currency-sensitive allocations.",2,03056,0.972411
+5,fx,3,"FX reserve update now suggests rmb weakness, putting pressure on currency-sensitive allocations.",3,03112,0.971699
+5,fx,3,"FX reserve update now suggests rmb weakness, putting pressure on currency-sensitive allocations.",4,03034,0.969139
+5,fx,3,"FX reserve update now suggests rmb weakness, putting pressure on currency-sensitive allocations.",5,03109,0.968853
+5,fx,4,currency-sensitive allocations are being repriced because FX reserve update indicates rmb weakness.,1,03003,0.991453
+5,fx,4,currency-sensitive allocations are being repriced because FX reserve update indicates rmb weakness.,2,03034,0.983926
+5,fx,4,currency-sensitive allocations are being repriced because FX reserve update indicates rmb weakness.,3,03056,0.981939
+5,fx,4,currency-sensitive allocations are being repriced because FX reserve update indicates rmb weakness.,4,03109,0.981918
+5,fx,4,currency-sensitive allocations are being repriced because FX reserve update indicates rmb weakness.,5,03031,0.981343
+5,fx,5,"rmb weakness is being signaled by FX reserve update, affecting currency-sensitive allocations.",1,03003,0.985567
+5,fx,5,"rmb weakness is being signaled by FX reserve update, affecting currency-sensitive allocations.",2,02839,0.977614
+5,fx,5,"rmb weakness is being signaled by FX reserve update, affecting currency-sensitive allocations.",3,03034,0.977278
+5,fx,5,"rmb weakness is being signaled by FX reserve update, affecting currency-sensitive allocations.",4,03109,0.976837
+5,fx,5,"rmb weakness is being signaled by FX reserve update, affecting currency-sensitive allocations.",5,02817,0.976767
+6,credit,1,default cycle signal is signaling default risk repricing for corporate credit exposures.,1,03039,0.872828
+6,credit,1,default cycle signal is signaling default risk repricing for corporate credit exposures.,2,03031,0.871967
+6,credit,1,default cycle signal is signaling default risk repricing for corporate credit exposures.,3,03136,0.869749
+6,credit,1,default cycle signal is signaling default risk repricing for corporate credit exposures.,4,03410,0.868429
+6,credit,1,default cycle signal is signaling default risk repricing for corporate credit exposures.,5,03466,0.866295
+6,credit,2,corporate credit exposures are reacting as default cycle signal points to default risk repricing.,1,03031,0.883289
+6,credit,2,corporate credit exposures are reacting as default cycle signal points to default risk repricing.,2,03039,0.882343
+6,credit,2,corporate credit exposures are reacting as default cycle signal points to default risk repricing.,3,03457,0.874831
+6,credit,2,corporate credit exposures are reacting as default cycle signal points to default risk repricing.,4,03136,0.871642
+6,credit,2,corporate credit exposures are reacting as default cycle signal points to default risk repricing.,5,03410,0.871524
+6,credit,3,"default cycle signal now suggests default risk repricing, putting pressure on corporate credit exposures.",1,03031,0.854615
+6,credit,3,"default cycle signal now suggests default risk repricing, putting pressure on corporate credit exposures.",2,03112,0.853437
+6,credit,3,"default cycle signal now suggests default risk repricing, putting pressure on corporate credit exposures.",3,03056,0.853316
+6,credit,3,"default cycle signal now suggests default risk repricing, putting pressure on corporate credit exposures.",4,03039,0.852493
+6,credit,3,"default cycle signal now suggests default risk repricing, putting pressure on corporate credit exposures.",5,03457,0.850121
+6,credit,4,corporate credit exposures are being repriced because default cycle signal indicates default risk repricing.,1,03039,0.880787
+6,credit,4,corporate credit exposures are being repriced because default cycle signal indicates default risk repricing.,2,03031,0.879475
+6,credit,4,corporate credit exposures are being repriced because default cycle signal indicates default risk repricing.,3,03410,0.873525
+6,credit,4,corporate credit exposures are being repriced because default cycle signal indicates default risk repricing.,4,03469,0.872762
+6,credit,4,corporate credit exposures are being repriced because default cycle signal indicates default risk repricing.,5,03136,0.87238
+6,credit,5,"default risk repricing is being signaled by default cycle signal, affecting corporate credit exposures.",1,03031,0.875669
+6,credit,5,"default risk repricing is being signaled by default cycle signal, affecting corporate credit exposures.",2,03039,0.875587
+6,credit,5,"default risk repricing is being signaled by default cycle signal, affecting corporate credit exposures.",3,03457,0.872743
+6,credit,5,"default risk repricing is being signaled by default cycle signal, affecting corporate credit exposures.",4,03112,0.868654
+6,credit,5,"default risk repricing is being signaled by default cycle signal, affecting corporate credit exposures.",5,03056,0.868339
+7,china,1,China policy meeting is signaling policy easing for mainland and china policy trades.,1,03167,0.954997
+7,china,1,China policy meeting is signaling policy easing for mainland and china policy trades.,2,02822,0.953689
+7,china,1,China policy meeting is signaling policy easing for mainland and china policy trades.,3,03050,0.94555
+7,china,1,China policy meeting is signaling policy easing for mainland and china policy trades.,4,03024,0.945391
+7,china,1,China policy meeting is signaling policy easing for mainland and china policy trades.,5,03047,0.944778
+7,china,2,mainland and china policy trades are reacting as China policy meeting points to policy easing.,1,03167,0.965154
+7,china,2,mainland and china policy trades are reacting as China policy meeting points to policy easing.,2,02822,0.961526
+7,china,2,mainland and china policy trades are reacting as China policy meeting points to policy easing.,3,03050,0.950439
+7,china,2,mainland and china policy trades are reacting as China policy meeting points to policy easing.,4,03437,0.948869
+7,china,2,mainland and china policy trades are reacting as China policy meeting points to policy easing.,5,03174,0.948683
+7,china,3,"China policy meeting now suggests policy easing, putting pressure on mainland and china policy trades.",1,02822,0.951831
+7,china,3,"China policy meeting now suggests policy easing, putting pressure on mainland and china policy trades.",2,03167,0.94972
+7,china,3,"China policy meeting now suggests policy easing, putting pressure on mainland and china policy trades.",3,02823,0.935811
+7,china,3,"China policy meeting now suggests policy easing, putting pressure on mainland and china policy trades.",4,03047,0.934016
+7,china,3,"China policy meeting now suggests policy easing, putting pressure on mainland and china policy trades.",5,03050,0.933948
+7,china,4,mainland and china policy trades are being repriced because China policy meeting indicates policy easing.,1,03167,0.970967
+7,china,4,mainland and china policy trades are being repriced because China policy meeting indicates policy easing.,2,02822,0.967619
+7,china,4,mainland and china policy trades are being repriced because China policy meeting indicates policy easing.,3,03437,0.95638
+7,china,4,mainland and china policy trades are being repriced because China policy meeting indicates policy easing.,4,03174,0.954683
+7,china,4,mainland and china policy trades are being repriced because China policy meeting indicates policy easing.,5,03047,0.954519
+7,china,5,"policy easing is being signaled by China policy meeting, affecting mainland and china policy trades.",1,03167,0.959669
+7,china,5,"policy easing is being signaled by China policy meeting, affecting mainland and china policy trades.",2,02822,0.958742
+7,china,5,"policy easing is being signaled by China policy meeting, affecting mainland and china policy trades.",3,03024,0.950308
+7,china,5,"policy easing is being signaled by China policy meeting, affecting mainland and china policy trades.",4,02823,0.947144
+7,china,5,"policy easing is being signaled by China policy meeting, affecting mainland and china policy trades.",5,03050,0.946304
+8,us_macro,1,Fed communication is signaling labor data miss for us macro-sensitive allocations.,1,03039,0.866906
+8,us_macro,1,Fed communication is signaling labor data miss for us macro-sensitive allocations.,2,03077,0.863299
+8,us_macro,1,Fed communication is signaling labor data miss for us macro-sensitive allocations.,3,03071,0.854847
+8,us_macro,1,Fed communication is signaling labor data miss for us macro-sensitive allocations.,4,03457,0.854552
+8,us_macro,1,Fed communication is signaling labor data miss for us macro-sensitive allocations.,5,03011,0.854549
+8,us_macro,2,us macro-sensitive allocations are reacting as Fed communication points to labor data miss.,1,03039,0.865464
+8,us_macro,2,us macro-sensitive allocations are reacting as Fed communication points to labor data miss.,2,03077,0.86233
+8,us_macro,2,us macro-sensitive allocations are reacting as Fed communication points to labor data miss.,3,03480,0.85349
+8,us_macro,2,us macro-sensitive allocations are reacting as Fed communication points to labor data miss.,4,03420,0.853261
+8,us_macro,2,us macro-sensitive allocations are reacting as Fed communication points to labor data miss.,5,03046,0.853183
+8,us_macro,3,"Fed communication now suggests labor data miss, putting pressure on us macro-sensitive allocations.",1,03039,0.848834
+8,us_macro,3,"Fed communication now suggests labor data miss, putting pressure on us macro-sensitive allocations.",2,03077,0.847795
+8,us_macro,3,"Fed communication now suggests labor data miss, putting pressure on us macro-sensitive allocations.",3,03112,0.842886
+8,us_macro,3,"Fed communication now suggests labor data miss, putting pressure on us macro-sensitive allocations.",4,03056,0.842616
+8,us_macro,3,"Fed communication now suggests labor data miss, putting pressure on us macro-sensitive allocations.",5,03411,0.840713
+8,us_macro,4,us macro-sensitive allocations are being repriced because Fed communication indicates labor data miss.,1,03039,0.871694
+8,us_macro,4,us macro-sensitive allocations are being repriced because Fed communication indicates labor data miss.,2,03077,0.860937
+8,us_macro,4,us macro-sensitive allocations are being repriced because Fed communication indicates labor data miss.,3,03480,0.85994
+8,us_macro,4,us macro-sensitive allocations are being repriced because Fed communication indicates labor data miss.,4,03420,0.859756
+8,us_macro,4,us macro-sensitive allocations are being repriced because Fed communication indicates labor data miss.,5,03488,0.859717
+8,us_macro,5,"labor data miss is being signaled by Fed communication, affecting us macro-sensitive allocations.",1,03039,0.861706
+8,us_macro,5,"labor data miss is being signaled by Fed communication, affecting us macro-sensitive allocations.",2,03077,0.858944
+8,us_macro,5,"labor data miss is being signaled by Fed communication, affecting us macro-sensitive allocations.",3,03457,0.85379
+8,us_macro,5,"labor data miss is being signaled by Fed communication, affecting us macro-sensitive allocations.",4,03071,0.852963
+8,us_macro,5,"labor data miss is being signaled by Fed communication, affecting us macro-sensitive allocations.",5,03011,0.852124
+9,tech,1,semiconductor cycle briefing is signaling software demand slowdown for technology and innovation themes.,1,03486,0.825796
+9,tech,1,semiconductor cycle briefing is signaling software demand slowdown for technology and innovation themes.,2,03179,0.822563
+9,tech,1,semiconductor cycle briefing is signaling software demand slowdown for technology and innovation themes.,3,03032,0.821145
+9,tech,1,semiconductor cycle briefing is signaling software demand slowdown for technology and innovation themes.,4,03033,0.820676
+9,tech,1,semiconductor cycle briefing is signaling software demand slowdown for technology and innovation themes.,5,03191,0.819246
+9,tech,2,technology and innovation themes are reacting as semiconductor cycle briefing points to software demand slowdown.,1,03486,0.822764
+9,tech,2,technology and innovation themes are reacting as semiconductor cycle briefing points to software demand slowdown.,2,03406,0.820111
+9,tech,2,technology and innovation themes are reacting as semiconductor cycle briefing points to software demand slowdown.,3,03179,0.819215
+9,tech,2,technology and innovation themes are reacting as semiconductor cycle briefing points to software demand slowdown.,4,03191,0.817386
+9,tech,2,technology and innovation themes are reacting as semiconductor cycle briefing points to software demand slowdown.,5,03115,0.815929
+9,tech,3,"semiconductor cycle briefing now suggests software demand slowdown, putting pressure on technology and innovation themes.",1,03486,0.809487
+9,tech,3,"semiconductor cycle briefing now suggests software demand slowdown, putting pressure on technology and innovation themes.",2,03179,0.809321
+9,tech,3,"semiconductor cycle briefing now suggests software demand slowdown, putting pressure on technology and innovation themes.",3,03033,0.808031
+9,tech,3,"semiconductor cycle briefing now suggests software demand slowdown, putting pressure on technology and innovation themes.",4,03115,0.806964
+9,tech,3,"semiconductor cycle briefing now suggests software demand slowdown, putting pressure on technology and innovation themes.",5,03442,0.806869
+9,tech,4,technology and innovation themes are being repriced because semiconductor cycle briefing indicates software demand slowdown.,1,03179,0.832951
+9,tech,4,technology and innovation themes are being repriced because semiconductor cycle briefing indicates software demand slowdown.,2,03406,0.829618
+9,tech,4,technology and innovation themes are being repriced because semiconductor cycle briefing indicates software demand slowdown.,3,03486,0.82942
+9,tech,4,technology and innovation themes are being repriced because semiconductor cycle briefing indicates software demand slowdown.,4,03442,0.825056
+9,tech,4,technology and innovation themes are being repriced because semiconductor cycle briefing indicates software demand slowdown.,5,03191,0.824646
+9,tech,5,"software demand slowdown is being signaled by semiconductor cycle briefing, affecting technology and innovation themes.",1,03486,0.821867
+9,tech,5,"software demand slowdown is being signaled by semiconductor cycle briefing, affecting technology and innovation themes.",2,03191,0.820847
+9,tech,5,"software demand slowdown is being signaled by semiconductor cycle briefing, affecting technology and innovation themes.",3,03033,0.819347
+9,tech,5,"software demand slowdown is being signaled by semiconductor cycle briefing, affecting technology and innovation themes.",4,03442,0.818052
+9,tech,5,"software demand slowdown is being signaled by semiconductor cycle briefing, affecting technology and innovation themes.",5,03115,0.817993
+10,money_market,1,short-rate policy update is signaling short-rate repricing for cash and money-market sleeves.,1,03077,0.84893
+10,money_market,1,short-rate policy update is signaling short-rate repricing for cash and money-market sleeves.,2,03457,0.843157
+10,money_market,1,short-rate policy update is signaling short-rate repricing for cash and money-market sleeves.,3,03031,0.842676
+10,money_market,1,short-rate policy update is signaling short-rate repricing for cash and money-market sleeves.,4,03056,0.841713
+10,money_market,1,short-rate policy update is signaling short-rate repricing for cash and money-market sleeves.,5,03112,0.84
+10,money_market,2,cash and money-market sleeves are reacting as short-rate policy update points to short-rate repricing.,1,03457,0.84594
+10,money_market,2,cash and money-market sleeves are reacting as short-rate policy update points to short-rate repricing.,2,03077,0.845037
+10,money_market,2,cash and money-market sleeves are reacting as short-rate policy update points to short-rate repricing.,3,03056,0.843803
+10,money_market,2,cash and money-market sleeves are reacting as short-rate policy update points to short-rate repricing.,4,03112,0.842344
+10,money_market,2,cash and money-market sleeves are reacting as short-rate policy update points to short-rate repricing.,5,03031,0.839159
+10,money_market,3,"short-rate policy update now suggests short-rate repricing, putting pressure on cash and money-market sleeves.",1,03056,0.838747
+10,money_market,3,"short-rate policy update now suggests short-rate repricing, putting pressure on cash and money-market sleeves.",2,03457,0.837478
+10,money_market,3,"short-rate policy update now suggests short-rate repricing, putting pressure on cash and money-market sleeves.",3,03112,0.837162
+10,money_market,3,"short-rate policy update now suggests short-rate repricing, putting pressure on cash and money-market sleeves.",4,03077,0.836277
+10,money_market,3,"short-rate policy update now suggests short-rate repricing, putting pressure on cash and money-market sleeves.",5,03031,0.833105
+10,money_market,4,cash and money-market sleeves are being repriced because short-rate policy update indicates short-rate repricing.,1,03457,0.843746
+10,money_market,4,cash and money-market sleeves are being repriced because short-rate policy update indicates short-rate repricing.,2,03056,0.842498
+10,money_market,4,cash and money-market sleeves are being repriced because short-rate policy update indicates short-rate repricing.,3,03031,0.841527
+10,money_market,4,cash and money-market sleeves are being repriced because short-rate policy update indicates short-rate repricing.,4,03112,0.840125
+10,money_market,4,cash and money-market sleeves are being repriced because short-rate policy update indicates short-rate repricing.,5,03077,0.839692
+10,money_market,5,"short-rate repricing is being signaled by short-rate policy update, affecting cash and money-market sleeves.",1,03077,0.85146
+10,money_market,5,"short-rate repricing is being signaled by short-rate policy update, affecting cash and money-market sleeves.",2,03457,0.851371
+10,money_market,5,"short-rate repricing is being signaled by short-rate policy update, affecting cash and money-market sleeves.",3,03056,0.848014
+10,money_market,5,"short-rate repricing is being signaled by short-rate policy update, affecting cash and money-market sleeves.",4,03112,0.846221
+10,money_market,5,"short-rate repricing is being signaled by short-rate policy update, affecting cash and money-market sleeves.",5,03031,0.845476

@@ -1,0 +1,11 @@
+﻿domain,concepts,avg_topk_jaccard,avg_top1_consistency,avg_score_corr_ticker_pearson,avg_score_corr_ticker_spearman,avg_rank_score_corr,avg_score_gap_delta,avg_score_spread,avg_tie_bucket_jaccard
+china,10,0.4138,0.21,-0.6726,-0.6726,0.0,,,0.1058
+commodity,10,0.5464,0.34,-0.2031,-0.2031,0.0,,,0.4368
+credit,10,0.544,0.515,0.0,0.0,0.0,,,1.0
+crypto,10,0.4895,0.67,0.0,0.0,0.0,,,1.0
+equity,10,0.3361,0.195,-0.3621,-0.3621,0.0,,,0.069
+fx,10,0.605,0.68,0.0,0.0,0.0,,,1.0
+money_market,10,0.665,0.5,0.0,0.0,0.0,,,1.0
+rates,10,0.6654,0.81,-0.0295,-0.0295,0.0,,,0.7937
+tech,10,0.4323,0.66,0.0,0.0,0.0,,,1.0
+us_macro,10,0.5623,0.825,0.0,0.0,0.0,,,1.0
