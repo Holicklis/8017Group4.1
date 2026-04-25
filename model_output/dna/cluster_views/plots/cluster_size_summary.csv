@@ -1,0 +1,7 @@
+perspective,cluster_id,etf_count
+macro_sensitivity,0,31
+macro_sensitivity,1,45
+macro_sensitivity,2,73
+macro_sensitivity,3,10
+return_risk_profile,0,34
+return_risk_profile,1,125

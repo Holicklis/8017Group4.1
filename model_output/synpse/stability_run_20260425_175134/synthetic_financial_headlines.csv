@@ -1,0 +1,51 @@
+﻿concept_id,domain,variant_id,base_meaning,headline
+1,equity,1,earnings season update signals earnings downgrade for regional equity baskets,earnings season update is signaling earnings downgrade for regional equity baskets.
+1,equity,2,earnings season update signals earnings downgrade for regional equity baskets,regional equity baskets are reacting as earnings season update points to earnings downgrade.
+1,equity,3,earnings season update signals earnings downgrade for regional equity baskets,"earnings season update now suggests earnings downgrade, putting pressure on regional equity baskets."
+1,equity,4,earnings season update signals earnings downgrade for regional equity baskets,regional equity baskets are being repriced because earnings season update indicates earnings downgrade.
+1,equity,5,earnings season update signals earnings downgrade for regional equity baskets,"earnings downgrade is being signaled by earnings season update, affecting regional equity baskets."
+2,rates,1,central bank policy statement signals rate hike expectations for duration-sensitive bond exposures,central bank policy statement is signaling rate hike expectations for duration-sensitive bond exposures.
+2,rates,2,central bank policy statement signals rate hike expectations for duration-sensitive bond exposures,duration-sensitive bond exposures are reacting as central bank policy statement points to rate hike expectations.
+2,rates,3,central bank policy statement signals rate hike expectations for duration-sensitive bond exposures,"central bank policy statement now suggests rate hike expectations, putting pressure on duration-sensitive bond exposures."
+2,rates,4,central bank policy statement signals rate hike expectations for duration-sensitive bond exposures,duration-sensitive bond exposures are being repriced because central bank policy statement indicates rate hike expectations.
+2,rates,5,central bank policy statement signals rate hike expectations for duration-sensitive bond exposures,"rate hike expectations is being signaled by central bank policy statement, affecting duration-sensitive bond exposures."
+3,commodity,1,commodity market briefing signals raw material shortage for commodity-linked holdings,commodity market briefing is signaling raw material shortage for commodity-linked holdings.
+3,commodity,2,commodity market briefing signals raw material shortage for commodity-linked holdings,commodity-linked holdings are reacting as commodity market briefing points to raw material shortage.
+3,commodity,3,commodity market briefing signals raw material shortage for commodity-linked holdings,"commodity market briefing now suggests raw material shortage, putting pressure on commodity-linked holdings."
+3,commodity,4,commodity market briefing signals raw material shortage for commodity-linked holdings,commodity-linked holdings are being repriced because commodity market briefing indicates raw material shortage.
+3,commodity,5,commodity market briefing signals raw material shortage for commodity-linked holdings,"raw material shortage is being signaled by commodity market briefing, affecting commodity-linked holdings."
+4,crypto,1,crypto regulation hearing signals bitcoin volatility for crypto and digital-asset proxies,crypto regulation hearing is signaling bitcoin volatility for crypto and digital-asset proxies.
+4,crypto,2,crypto regulation hearing signals bitcoin volatility for crypto and digital-asset proxies,crypto and digital-asset proxies are reacting as crypto regulation hearing points to bitcoin volatility.
+4,crypto,3,crypto regulation hearing signals bitcoin volatility for crypto and digital-asset proxies,"crypto regulation hearing now suggests bitcoin volatility, putting pressure on crypto and digital-asset proxies."
+4,crypto,4,crypto regulation hearing signals bitcoin volatility for crypto and digital-asset proxies,crypto and digital-asset proxies are being repriced because crypto regulation hearing indicates bitcoin volatility.
+4,crypto,5,crypto regulation hearing signals bitcoin volatility for crypto and digital-asset proxies,"bitcoin volatility is being signaled by crypto regulation hearing, affecting crypto and digital-asset proxies."
+5,fx,1,FX reserve update signals rmb weakness for currency-sensitive allocations,FX reserve update is signaling rmb weakness for currency-sensitive allocations.
+5,fx,2,FX reserve update signals rmb weakness for currency-sensitive allocations,currency-sensitive allocations are reacting as FX reserve update points to rmb weakness.
+5,fx,3,FX reserve update signals rmb weakness for currency-sensitive allocations,"FX reserve update now suggests rmb weakness, putting pressure on currency-sensitive allocations."
+5,fx,4,FX reserve update signals rmb weakness for currency-sensitive allocations,currency-sensitive allocations are being repriced because FX reserve update indicates rmb weakness.
+5,fx,5,FX reserve update signals rmb weakness for currency-sensitive allocations,"rmb weakness is being signaled by FX reserve update, affecting currency-sensitive allocations."
+6,credit,1,default cycle signal signals default risk repricing for corporate credit exposures,default cycle signal is signaling default risk repricing for corporate credit exposures.
+6,credit,2,default cycle signal signals default risk repricing for corporate credit exposures,corporate credit exposures are reacting as default cycle signal points to default risk repricing.
+6,credit,3,default cycle signal signals default risk repricing for corporate credit exposures,"default cycle signal now suggests default risk repricing, putting pressure on corporate credit exposures."
+6,credit,4,default cycle signal signals default risk repricing for corporate credit exposures,corporate credit exposures are being repriced because default cycle signal indicates default risk repricing.
+6,credit,5,default cycle signal signals default risk repricing for corporate credit exposures,"default risk repricing is being signaled by default cycle signal, affecting corporate credit exposures."
+7,china,1,China policy meeting signals policy easing for mainland and china policy trades,China policy meeting is signaling policy easing for mainland and china policy trades.
+7,china,2,China policy meeting signals policy easing for mainland and china policy trades,mainland and china policy trades are reacting as China policy meeting points to policy easing.
+7,china,3,China policy meeting signals policy easing for mainland and china policy trades,"China policy meeting now suggests policy easing, putting pressure on mainland and china policy trades."
+7,china,4,China policy meeting signals policy easing for mainland and china policy trades,mainland and china policy trades are being repriced because China policy meeting indicates policy easing.
+7,china,5,China policy meeting signals policy easing for mainland and china policy trades,"policy easing is being signaled by China policy meeting, affecting mainland and china policy trades."
+8,us_macro,1,Fed communication signals labor data miss for us macro-sensitive allocations,Fed communication is signaling labor data miss for us macro-sensitive allocations.
+8,us_macro,2,Fed communication signals labor data miss for us macro-sensitive allocations,us macro-sensitive allocations are reacting as Fed communication points to labor data miss.
+8,us_macro,3,Fed communication signals labor data miss for us macro-sensitive allocations,"Fed communication now suggests labor data miss, putting pressure on us macro-sensitive allocations."
+8,us_macro,4,Fed communication signals labor data miss for us macro-sensitive allocations,us macro-sensitive allocations are being repriced because Fed communication indicates labor data miss.
+8,us_macro,5,Fed communication signals labor data miss for us macro-sensitive allocations,"labor data miss is being signaled by Fed communication, affecting us macro-sensitive allocations."
+9,tech,1,semiconductor cycle briefing signals software demand slowdown for technology and innovation themes,semiconductor cycle briefing is signaling software demand slowdown for technology and innovation themes.
+9,tech,2,semiconductor cycle briefing signals software demand slowdown for technology and innovation themes,technology and innovation themes are reacting as semiconductor cycle briefing points to software demand slowdown.
+9,tech,3,semiconductor cycle briefing signals software demand slowdown for technology and innovation themes,"semiconductor cycle briefing now suggests software demand slowdown, putting pressure on technology and innovation themes."
+9,tech,4,semiconductor cycle briefing signals software demand slowdown for technology and innovation themes,technology and innovation themes are being repriced because semiconductor cycle briefing indicates software demand slowdown.
+9,tech,5,semiconductor cycle briefing signals software demand slowdown for technology and innovation themes,"software demand slowdown is being signaled by semiconductor cycle briefing, affecting technology and innovation themes."
+10,money_market,1,short-rate policy update signals short-rate repricing for cash and money-market sleeves,short-rate policy update is signaling short-rate repricing for cash and money-market sleeves.
+10,money_market,2,short-rate policy update signals short-rate repricing for cash and money-market sleeves,cash and money-market sleeves are reacting as short-rate policy update points to short-rate repricing.
+10,money_market,3,short-rate policy update signals short-rate repricing for cash and money-market sleeves,"short-rate policy update now suggests short-rate repricing, putting pressure on cash and money-market sleeves."
+10,money_market,4,short-rate policy update signals short-rate repricing for cash and money-market sleeves,cash and money-market sleeves are being repriced because short-rate policy update indicates short-rate repricing.
+10,money_market,5,short-rate policy update signals short-rate repricing for cash and money-market sleeves,"short-rate repricing is being signaled by short-rate policy update, affecting cash and money-market sleeves."

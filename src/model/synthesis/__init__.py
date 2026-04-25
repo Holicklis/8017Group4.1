@@ -1,0 +1,1 @@
+"""Financial Synthesis model package."""
