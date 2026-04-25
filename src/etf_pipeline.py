@@ -16,8 +16,11 @@ from typing import List, Optional
 
 import pandas as pd
 
-from hkex_etf.etf_document_scraper import configure_logging, scrape_many_tickers
-from hkex_etf.etf_metadata_export import download_full_etp_list
+from data_ingestion.provider.hkex.hkex_etf.etf_document_scraper import (
+    configure_logging,
+    scrape_many_tickers,
+)
+from data_ingestion.provider.hkex.hkex_etf.etf_metadata_export import download_full_etp_list
 from text_extraction.pdf_text_extractor import ETFPDFProcessor
 
 logger = logging.getLogger(__name__)
@@ -78,6 +81,7 @@ def run_pipeline(
     skip_export: bool,
     skip_documents: bool,
     skip_text_extract: bool,
+    skip_profile_generation: bool,
     headless: bool,
 ) -> None:
     """Run the full ETF processing pipeline with optional stage skipping."""
@@ -96,9 +100,9 @@ def run_pipeline(
         scrape_many_tickers(ticker_list, headless=headless)
 
     if not skip_text_extract:
-        logger.info("Stage 3/3: Extracting PDF text into CSV")
+        logger.info("Stage 3/3: Extracting PDF text into CSV and ETF profiles")
         processor = ETFPDFProcessor(data_root=_project_root() / "data")
-        processor.run_pipeline()
+        processor.run_pipeline(generate_profiles=not skip_profile_generation)
 
     logger.info("ETF data pipeline completed successfully")
 
@@ -115,6 +119,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--skip-export", action="store_true", help="Skip stage 1 (ETP export)")
     parser.add_argument("--skip-documents", action="store_true", help="Skip stage 2 (PDF scraping)")
     parser.add_argument("--skip-text-extract", action="store_true", help="Skip stage 3 (PDF to CSV)")
+    parser.add_argument(
+        "--skip-profile-generation",
+        action="store_true",
+        help="Skip ETF profile generation during text extraction stage",
+    )
     parser.add_argument("--no-headless", action="store_true", help="Run Chrome with UI")
     return parser.parse_args()
 
@@ -127,5 +136,6 @@ if __name__ == "__main__":
         skip_export=arguments.skip_export,
         skip_documents=arguments.skip_documents,
         skip_text_extract=arguments.skip_text_extract,
+        skip_profile_generation=arguments.skip_profile_generation,
         headless=not arguments.no_headless,
     )

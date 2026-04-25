@@ -39,19 +39,50 @@ Identify hidden structural relationships between HK ETFs using empirical behavio
 **Value Add**  
 Detects false diversification, highlights mathematically similar alternatives, and supports lower-cost global substitution analysis.
 
-### 🧠 Model 2: Synapse (Semantic Connector) — **In Progress**
+### 🧠 Model 2: Synapse (Semantic Connector) — **Implemented**
 **Purpose**  
 Bridge ETF risk disclosures with real-world narratives and event flow.
 
-**Methodology (Target Design)**  
-- Parse HKEX prospectus/key-facts text into sentence-level corpus.
-- Encode text with Sentence-BERT embeddings.
-- Match news/risk statements by cosine similarity and semantic re-ranking.
+**Motivation (Retail Investor Use Case)**  
+- Retail investors usually understand stories ("rates rising", "China policy shift") but not always the **ETF-level risk transmission** of those stories.
+- Most public sentiment datasets are **single-stock focused**, while ETF risk is often **macro and cross-asset**.
+- Synapse maps news narratives to ETF risk profiles so users can discover both:
+  - risk concentration they may already hold, and
+  - opportunity candidates aligned with their optimism/worry scenario.
 
-**Current Status**  
-- Foundation code exists in `src/model/synapse/model.py`.
-- Data pipeline support exists through document scraping + PDF text extraction.
-- Production-grade scoring, calibration, and evaluation are planned next.
+**Methodology (Current Design)**  
+- Build one ETF-level semantic profile from prospectus/key-facts texts:
+  - section-aware filtering,
+  - noise/boilerplate removal,
+  - near-duplicate suppression,
+  - strict sentence/character budgets.
+- Encode profile corpus with local bi-encoder embeddings.
+- Retrieve top candidates by semantic similarity.
+- Apply optional metadata/tag boosting and optional lightweight reranking.
+- Add financial sentiment signal (FinBERT) to produce combined relevance+sentiment views.
+
+**Technical Details (Text Processing Focus)**  
+- Source extraction: `src/text_extraction/pdf_text_extractor.py`
+  - PDF cleanup and sentence normalization
+  - keyword-based risk/component tagging
+  - per-ETF profile generation (`etf_profiles.csv`)
+- Retrieval core: `src/model/synapse/model.py`
+  - profile-level corpus (one row per ticker)
+  - cache-versioned embeddings
+  - fast/quality model presets
+- Batch inference + visualization: `src/model/synapse/run_news_events.py`
+  - run on full news CSVs
+  - export top-k matches + score diagnostics + visual artifacts
+- Stability testing: `src/model/synapse/semantic_clustering_stability.py`
+  - synthetic paraphrase stress test
+  - top-5 consistency and stability scoring
+
+**No External API Principle**  
+- Synapse avoids external API dependency for scoring/tagging:
+  - faster and cheaper at scale,
+  - easier low-latency reaction for new headlines,
+  - deterministic and reproducible local runs,
+  - can use internal ETF profile context that generic external APIs do not have.
 
 **Value Add**  
 Generates early risk-alignment signals when external narratives resemble an ETF's documented risk DNA.
@@ -106,11 +137,14 @@ Delivers a personalized "Global Navigator" experience that converts technical an
 ├── src/
 │   ├── etf_pipeline.py
 │   ├── data_ingestion/
-│   │   ├── etf_market_data_fetcher.py
-│   │   └── etf_top_holdings_data_fetcher.py
-│   ├── hkex_etf/
-│   │   ├── etf_metadata_export.py
-│   │   └── etf_document_scraper.py
+│   │   └── provider/
+│   │       ├── hkex/
+│   │       │   └── hkex_etf/
+│   │       │       ├── etf_metadata_export.py
+│   │       │       └── etf_document_scraper.py
+│   │       └── yfinance/
+│   │           ├── etf_market_data_fetcher.py
+│   │           └── etf_top_holdings_data_fetcher.py
 │   ├── text_extraction/
 │   │   └── pdf_text_extractor.py
 │   └── model/
@@ -162,6 +196,9 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 uv sync
 ```
 
+This repository follows a modern `src/` layout with explicit package boundaries
+via `__init__.py` files under `src/`.
+
 ### 2) Run Core Data Pipeline
 ```bash
 uv run python src/etf_pipeline.py
@@ -186,8 +223,37 @@ uv run python src/model/dna/visualize_clusters.py
 
 ### 4) Run Data Fetchers Individually
 ```bash
-uv run python src/data_ingestion/etf_market_data_fetcher.py
-uv run python src/data_ingestion/etf_top_holdings_data_fetcher.py
+uv run python src/data_ingestion/provider/yfinance/etf_market_data_fetcher.py
+uv run python src/data_ingestion/provider/yfinance/etf_top_holdings_data_fetcher.py
+```
+
+### 5) Synapse Usage Guide
+```bash
+# Build / refresh ETF profiles from document corpus
+uv run python src/text_extraction/pdf_text_extractor.py
+
+# Quick query test (profile corpus, fast preset)
+uv run python src/model/synapse/model.py --query "Fed pause supports duration-sensitive assets" --top-k 5
+
+# Side-by-side benchmark (profile vs sentence corpus)
+uv run python src/model/synapse/evaluate_benchmark.py --preset fast --top-k 3 --sentence-row-cap 4000
+
+# Full news run with financial sentiment integration
+uv run python src/model/synapse/run_news_events.py \
+  --input-csv "data/news/financial_news_events.csv" \
+  --preset fast \
+  --corpus-mode profile \
+  --top-k 3 \
+  --sentiment-model "ProsusAI/finbert" \
+  --sentiment-weight 0.25
+
+# Semantic stability stress test
+uv run python src/model/synapse/semantic_clustering_stability.py \
+  --preset fast \
+  --corpus-mode profile \
+  --top-k 5 \
+  --num-concepts 100 \
+  --variants-per-concept 20
 ```
 
 ## 🎓 Academic Foundation

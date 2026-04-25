@@ -22,7 +22,9 @@ dependencies = [
     "requests",
     "scikit-learn",
     "selenium",
+    "sentence-transformers",
     "streamlit",
+    "torch",
     "tqdm",
     "yfinance",
 ]

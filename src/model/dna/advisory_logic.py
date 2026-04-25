@@ -28,6 +28,10 @@ def _default_etf_data_root() -> Path:
     return data_root / "etf" if (data_root / "etf").exists() else data_root / "ETF"
 
 
+def _default_model_output_root() -> Path:
+    return _project_root() / "model_output" / "dna"
+
+
 class GlobalNavigator:
     """Portfolio advisory layer on top of cluster perspectives."""
 
@@ -41,9 +45,9 @@ class GlobalNavigator:
         home_bias_max_pc_distance: float = 2.0,
         home_bias_top_k_per_etf: int = 10,
     ) -> None:
-        etf_root = _default_etf_data_root()
-        self.clusters_path = clusters_path or etf_root / "processed" / "cluster_views" / "cluster_perspectives.parquet"
-        self.output_dir = output_dir or etf_root / "processed" / "advisory"
+        model_output_root = _default_model_output_root()
+        self.clusters_path = clusters_path or model_output_root / "cluster_views" / "cluster_perspectives.parquet"
+        self.output_dir = output_dir or model_output_root / "advisory"
         self.min_label_mismatches = min_label_mismatches
         self.max_pc_distance = max_pc_distance
         self.top_k_per_etf = top_k_per_etf
