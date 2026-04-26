@@ -1,0 +1,25 @@
+{
+  "output_root": "/Users/hunglun/Library/Mobile Documents/com~apple~CloudDocs/Study/HKU_STAT/2025_Sem2/STAT8020/Project/8017Group4.1/model_output/Synthesis",
+  "status": "completed",
+  "timestamp": "2026-04-26T14:39:11.931965",
+  "ticker": "2800",
+  "query": "how is the past return and what is the fee",
+  "backend": "transformers",
+  "model": "Qwen/Qwen2.5-7B-Instruct",
+  "enable_query_similarity": false,
+  "enable_response_cache": true,
+  "result": {
+    "response": "Based on fund documents, ongoing charges are about 0.06% per year. Additional dealing/creation-redemption fees may also apply.",
+    "data_evidence": {
+      "ticker": "2800",
+      "cluster_id": null,
+      "top_3_alternatives": [],
+      "news_similarity_scores": [],
+      "answer_mode": "direct_qa_lookup"
+    },
+    "language": "en",
+    "backend": "transformers",
+    "model": "Qwen/Qwen2.5-7B-Instruct",
+    "cache_hit": false
+  }
+}

@@ -98,7 +98,10 @@ def _save_visuals(df_results: pd.DataFrame, output_dir: Path) -> Dict[str, str]:
         if not day_df.empty:
             daily = (
                 day_df.groupby(day_df["Date"].dt.date)
-                .agg(news_count=("news_id", "count"), avg_top1_score=("final_score", "mean"))
+                .agg(
+                    news_count=("news_id", "count"),
+                    avg_top1_score=("final_score", "mean"),
+                )
                 .reset_index()
             )
             daily["Date"] = daily["Date"].astype(str)
@@ -136,9 +139,7 @@ def _save_visuals(df_results: pd.DataFrame, output_dir: Path) -> Dict[str, str]:
 
     event_col = "Market_Event" if "Market_Event" in top1_df.columns else None
     if event_col:
-        event_counts = (
-            top1_df.groupby([event_col, "predicted_ticker"]).size().reset_index(name="count")
-        )
+        event_counts = top1_df.groupby([event_col, "predicted_ticker"]).size().reset_index(name="count")
         event_top = event_counts.sort_values("count", ascending=False).head(40)
         if not event_top.empty:
             bar = px.bar(
@@ -190,11 +191,7 @@ def run_news_events(
     df_news["news_id"] = range(1, len(df_news) + 1)
 
     sentiment_input = (
-        df_news[text_col]
-        .fillna("")
-        .astype(str)
-        .str.strip()
-        .where(lambda s: s.str.len() > 0, df_news["query_text"])
+        df_news[text_col].fillna("").astype(str).str.strip().where(lambda s: s.str.len() > 0, df_news["query_text"])
     )
     sentiment_model = _load_financial_sentiment_model(sentiment_model_name)
     sentiment_raw = sentiment_model(

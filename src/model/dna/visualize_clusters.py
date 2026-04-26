@@ -78,7 +78,12 @@ class ClusterVisualizer:
 
             if self.annotate_points and "ticker" in chunk.columns:
                 for _, row in chunk.iterrows():
-                    ax.annotate(str(row["ticker"]), (row[x_col], row[y_col]), fontsize=7, alpha=0.8)
+                    ax.annotate(
+                        str(row["ticker"]),
+                        (row[x_col], row[y_col]),
+                        fontsize=7,
+                        alpha=0.8,
+                    )
 
         ax.set_title(f"Financial DNA Cluster Map - {perspective} ({x_col.upper()} vs {y_col.upper()})")
         ax.set_xlabel(x_col.upper())
@@ -204,8 +209,18 @@ class ClusterVisualizer:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Visualize Financial DNA cluster perspectives.")
-    parser.add_argument("--input-path", type=Path, default=None, help="Path to cluster_perspectives.parquet")
-    parser.add_argument("--output-dir", type=Path, default=None, help="Directory for generated plot files")
+    parser.add_argument(
+        "--input-path",
+        type=Path,
+        default=None,
+        help="Path to cluster_perspectives.parquet",
+    )
+    parser.add_argument(
+        "--output-dir",
+        type=Path,
+        default=None,
+        help="Directory for generated plot files",
+    )
     parser.add_argument(
         "--annotate-points",
         action="store_true",

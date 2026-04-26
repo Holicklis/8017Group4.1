@@ -37,7 +37,11 @@ TOPIC_LIBRARY: Sequence[TopicTemplate] = [
     TopicTemplate(
         "equity",
         "regional equity baskets",
-        ["earnings season update", "corporate guidance release", "equity outlook briefing"],
+        [
+            "earnings season update",
+            "corporate guidance release",
+            "equity outlook briefing",
+        ],
         ["earnings downgrade", "revenue slowdown", "valuation compression"],
     ),
     TopicTemplate(
@@ -49,7 +53,11 @@ TOPIC_LIBRARY: Sequence[TopicTemplate] = [
     TopicTemplate(
         "commodity",
         "commodity-linked holdings",
-        ["OPEC supply announcement", "inventory report update", "commodity market briefing"],
+        [
+            "OPEC supply announcement",
+            "inventory report update",
+            "commodity market briefing",
+        ],
         ["energy spike", "inventory drawdown", "raw material shortage"],
     ),
     TopicTemplate(
@@ -85,13 +93,21 @@ TOPIC_LIBRARY: Sequence[TopicTemplate] = [
     TopicTemplate(
         "tech",
         "technology and innovation themes",
-        ["big tech guidance release", "AI investment update", "semiconductor cycle briefing"],
+        [
+            "big tech guidance release",
+            "AI investment update",
+            "semiconductor cycle briefing",
+        ],
         ["ai cycle repricing", "semiconductor weakness", "software demand slowdown"],
     ),
     TopicTemplate(
         "money_market",
         "cash and money-market sleeves",
-        ["short-rate policy update", "funding market signal", "liquidity operations notice"],
+        [
+            "short-rate policy update",
+            "funding market signal",
+            "liquidity operations notice",
+        ],
         ["short-rate repricing", "funding pressure", "liquidity preference"],
     ),
 ]
@@ -317,7 +333,13 @@ def _save_plots(df_concept: pd.DataFrame, df_domain: pd.DataFrame, output_dir: P
         y="top1_consistency",
         color="domain",
         title="Concept-Level Stability Map (Score Correlation vs Top-1 Consistency)",
-        hover_data=["concept_id", "variants", "avg_topk_jaccard", "avg_rank_score_corr", "avg_score_gap_delta"],
+        hover_data=[
+            "concept_id",
+            "variants",
+            "avg_topk_jaccard",
+            "avg_rank_score_corr",
+            "avg_score_gap_delta",
+        ],
     )
     scatter_path = output_dir / "concept_stability_map.html"
     scatter.write_html(str(scatter_path), include_plotlyjs="cdn")

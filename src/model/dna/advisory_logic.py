@@ -104,9 +104,7 @@ class GlobalNavigator:
                 left_name = left.get("stock_short_name", "")
 
                 alternatives = group[
-                    (group.index != idx)
-                    & (group["geographic_focus"] != "")
-                    & (group["geographic_focus"] != left_geo)
+                    (group.index != idx) & (group["geographic_focus"] != "") & (group["geographic_focus"] != left_geo)
                 ]
                 for _, right in alternatives.iterrows():
                     pc_distance = math.nan
@@ -290,14 +288,28 @@ class GlobalNavigator:
 
         logger.info("Saved home-bias candidates: %s", home_bias_path)
         logger.info("Saved hidden twin candidates: %s", hidden_twins_path)
-        logger.info("Home-bias rows: %s | Hidden twin rows: %s", len(home_bias), len(hidden_twins))
+        logger.info(
+            "Home-bias rows: %s | Hidden twin rows: %s",
+            len(home_bias),
+            len(hidden_twins),
+        )
         return home_bias, hidden_twins
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run Financial DNA advisory logic from cluster perspectives.")
-    parser.add_argument("--clusters-path", type=Path, default=None, help="Path to cluster_perspectives.parquet")
-    parser.add_argument("--output-dir", type=Path, default=None, help="Output directory for advisory parquet files")
+    parser.add_argument(
+        "--clusters-path",
+        type=Path,
+        default=None,
+        help="Path to cluster_perspectives.parquet",
+    )
+    parser.add_argument(
+        "--output-dir",
+        type=Path,
+        default=None,
+        help="Output directory for advisory parquet files",
+    )
     parser.add_argument(
         "--min-label-mismatches",
         type=int,

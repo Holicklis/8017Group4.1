@@ -1,214 +1,89 @@
-# HK ETF Intelligence Platform
-### Evidence-Driven Global Diversification Beyond Home Bias
+# 🇭🇰 HK ETF Intelligence Platform
+Evidence-driven ETF analytics and AI insights for Hong Kong retail investors.
 
-## 🌍 Introduction
-Hong Kong retail portfolios often exhibit **home bias**: concentrated exposure to familiar local markets despite the risk-reduction potential of global allocation.  
-**HK ETF Intelligence Platform** addresses this gap with an evidence-based workflow that combines market microstructure, fund fundamentals, prospectus text, and semantic risk signals.
+## 📋 Overview
+This project helps investors explore HK ETFs with three connected intelligence modules:
 
-The platform is built as a three-model ecosystem:
-- **Financial DNA** for quantitative structure discovery,
-- **Synapse** for semantic risk/event linkage,
-- **Financial Synthesis** for human-centric explanation and decision support.
+- 🧬 **Financial DNA** — quantitative ETF structure and clustering
+- 🔗 **Synapse** — semantic link between ETF risk text and market events
+- ✨ **Financial Synthesis** — multilingual advisor-style response with evidence
 
-## 🧩 The Model Ecosystem
+The repository also includes a Streamlit application for screening ETFs, tracking weekly winners/losers, exploring holdings, and chatting with the synthesis model.
 
-### 🧬 Model 1: Financial DNA (Mathematical Core) — **Implemented**
-**Purpose**  
-Identify hidden structural relationships between HK ETFs using empirical behavior, not marketing labels.
+## 📖 Model Documentation
+Detailed model write-up is preserved in:
+- 📄 `MODEL_DETAILS.md` (repo root)
 
-**Methodology**  
-- Build a unified feature table from metadata, OHLCV, market-cap, and holdings-derived signals.
-- Standardize features and run **PCA** to retain high explanatory variance while reducing noise.
-- Apply **K-Means** clustering across multiple perspectives (for example `return_risk_profile`, `macro_sensitivity`).
-- Use perspective-level clusters to generate advisory candidates (for example home-bias mitigation and hidden twins).
+## ⭐ Key Features
 
-**Technical Details (Current Implementation)**  
-- **Data engineering module**: `src/model/dna/data_engine.py`
-  - Loads ETF universe and harmonizes ticker-level data.
-  - Engineers return, volatility, yield, concentration, and cross-asset relationship features.
-  - Produces `model_output/dna/financial_dna.parquet`.
-- **Clustering module**: `src/model/dna/model_core.py`
-  - Standardization: `StandardScaler`.
-  - Dimensionality reduction: `PCA` with configurable variance threshold.
-  - Clustering: `KMeans` with silhouette-based auto-k selection logic.
-  - Outputs perspective-level cluster artifacts to `model_output/dna/cluster_views/`.
-- **Advisory layer**: `src/model/dna/advisory_logic.py`
-  - Converts cluster geometry into actionable candidate sets.
-  - Writes outputs to `model_output/dna/advisory/`.
+### 🖥️ Platform Features
+- Build ETF feature matrix from metadata, OHLCV, holdings, and market-cap signals
+- Cluster ETFs with PCA + K-Means for diversification and similarity discovery
+- Generate advisory outputs (home-bias alternatives and hidden twins)
+- Match ETF semantic risk profiles to financial news/events
+- Generate synthesis responses with traceable evidence (`cluster context` + `news similarity`)
+- Generate and fine-tune QnA datasets for local Qwen models
 
-**Value Add**  
-Detects false diversification, highlights mathematically similar alternatives, and supports lower-cost global substitution analysis.
+### 📱 App Features (`app/hk_etf_intelligence_app.py`)
+- 📈 **1W Winners/Losers:** top/bottom 1-week ETF movers, including category splits
+- 🔍 **ETF Screener:** filter ETFs using HKEX metadata fields
+- 🗺️ **ETF Explorer:** 1-year price chart + top holdings (symbol, name, weight)
+- 🤖 **AI Chatbot:** synthesis Q&A with evidence block
 
-### 🧠 Model 2: Synapse (Semantic Connector) — **Implemented**
-**Purpose**  
-Bridge ETF risk disclosures with real-world narratives and event flow.
+## 🚀 Quick Start (Beginner Friendly)
 
-**Motivation (Retail Investor Use Case)**  
-- Retail investors usually understand stories ("rates rising", "China policy shift") but not always the **ETF-level risk transmission** of those stories.
-- Most public sentiment datasets are **single-stock focused**, while ETF risk is often **macro and cross-asset**.
-- Synapse maps news narratives to ETF risk profiles so users can discover both:
-  - risk concentration they may already hold, and
-  - opportunity candidates aligned with their optimism/worry scenario.
-
-**Methodology (Current Design)**  
-- Build one ETF-level semantic profile from prospectus/key-facts texts:
-  - section-aware filtering,
-  - noise/boilerplate removal,
-  - near-duplicate suppression,
-  - strict sentence/character budgets.
-- Encode profile corpus with local bi-encoder embeddings.
-- Retrieve top candidates by semantic similarity.
-- Apply optional metadata/tag boosting and optional lightweight reranking.
-- Add financial sentiment signal (FinBERT) to produce combined relevance+sentiment views.
-
-**Technical Details (Text Processing Focus)**  
-- Source extraction: `src/text_extraction/pdf_text_extractor.py`
-  - PDF cleanup and sentence normalization
-  - keyword-based risk/component tagging
-  - per-ETF profile generation (`model_output/synpse/etf_profiles.csv`)
-- Retrieval core: `src/model/synapse/model.py`
-  - profile-level corpus (one row per ticker)
-  - cache-versioned embeddings
-  - fast/quality model presets
-- Batch inference + visualization: `src/model/synapse/run_news_events.py`
-  - run on full news CSVs
-  - export top-k matches + score diagnostics + visual artifacts
-- Stability testing: `src/model/synapse/semantic_clustering_stability.py`
-  - strict paraphrase stress test (`100 concepts x 20 rewrites` default)
-  - top-k overlap + tie-aware stability + score-correlation diagnostics
-  - optional light reranking and query canonicalization for robustness checks
-
-**No External API Principle**  
-- Synapse avoids external API dependency for scoring/tagging:
-  - faster and cheaper at scale,
-  - easier low-latency reaction for new headlines,
-  - deterministic and reproducible local runs,
-  - can use internal ETF profile context that generic external APIs do not have.
-
-**Value Add**  
-Generates early risk-alignment signals when external narratives resemble an ETF's documented risk DNA.
-
-### 🤖 Model 3: Financial Synthesis (Intelligent Interface) — **Planned**
-**Purpose**  
-Translate quantitative clusters and semantic signals into investor-readable action guidance.
-
-**Methodology (Target Design)**  
-- Retrieval-augmented response layer over Financial DNA + Synapse outputs.
-- Explainable recommendation templates (why switch, where risk overlaps, what diversification improves).
-- User-facing conversational interface for decision support.
-
-**Current Status**  
-- Architecture defined; implementation will be added after Synapse stabilization.
-
-**Value Add**  
-Delivers a personalized "Global Navigator" experience that converts technical analytics into practical portfolio actions.
-
-## ✨ Key Features
-- **ETF Screener**: Quantitative ETF profiling from metadata, OHLCV, market cap, and holdings signals.
-- **Diversification Analysis**: Cluster-based similarity mapping, hidden twins, and home-bias candidate detection.
-- **AI Chat/Advisor Layer**: Human-readable interpretation of statistical outputs and risk context.
-
-## 🛠 Tech Stack
-- **Python**
-- **Scikit-Learn** (PCA, K-Means, clustering diagnostics)
-- **Sentence-Transformers** (semantic embeddings for Synapse workflows)
-- **PyMuPDF / PDF pipeline utilities** (document extraction flow)
-- **yfinance** (market and fund holdings data ingestion)
-- **Streamlit / Dash** (optional UI serving layer for interactive exploration)
-
-## 🧱 Project Structure
-```text
-8017Group4.1/
-├── data/
-│   └── etf/
-│       ├── instruments/
-│       │   └── all_hk_etf.csv
-│       ├── summary/
-│       │   └── ETP_Data_Export.xlsx
-│       ├── ohlcv/
-│       ├── market_cap/
-│       ├── holdings/
-│       │   └── top10/
-│       ├── documentation/
-│       │   └── <ticker>/{pdf,csv}/
-├── model_output/
-│   ├── dna/
-│   │   ├── financial_dna.parquet
-│   │   ├── cluster_views/
-│   │   └── advisory/
-│   ├── synpse/
-│   │   ├── etf_profiles.csv
-│   │   ├── cache/
-│   │   ├── benchmark_side_by_side_*.json
-│   │   ├── news_events_run_*/
-│   │   └── stability_run_*/
-│   └── Synthesis/
-├── src/
-│   ├── etf_pipeline.py
-│   ├── data_ingestion/
-│   │   └── provider/
-│   │       ├── hkex/
-│   │       │   └── hkex_etf/
-│   │       │       ├── etf_metadata_export.py
-│   │       │       └── etf_document_scraper.py
-│   │       └── yfinance/
-│   │           ├── etf_market_data_fetcher.py
-│   │           └── etf_top_holdings_data_fetcher.py
-│   ├── text_extraction/
-│   │   └── pdf_text_extractor.py
-│   └── model/
-│       ├── dna/
-│       │   ├── data_engine.py
-│       │   ├── model_core.py
-│       │   ├── advisory_logic.py
-│       │   └── visualize_clusters.py
-│       └── synapse/
-│           └── model.py
-├── pyproject.toml
-└── README.md
-```
-
-## 🔄 Workflow & Pipeline
-
-### Step 1: Data Ingestion
-1. Export HKEX ETF universe metadata.
-2. Download OHLCV + market cap from market APIs.
-3. Fetch top holdings data.
-4. Scrape ETF documents (prospectus / key facts).
-
-### Step 2: Text Processing
-1. Convert PDFs to clean sentence-level CSV.
-2. Build corpus for semantic indexing and retrieval.
-
-### Step 3: Financial DNA Modeling
-1. Engineer feature matrix (`model_output/dna/financial_dna.parquet`).
-2. Run PCA + K-Means by perspective.
-3. Generate advisory artifacts (home-bias and hidden-twin candidates).
-
-### Step 4: Synapse Intelligence
-1. Build ETF profile corpus in `model_output/synpse/`.
-2. Embed documentation text and retrieve by semantic relevance.
-3. Optionally add sentiment and stability diagnostics.
-
-### Step 5: Financial Synthesis
-1. Merge quantitative and semantic evidence.
-2. Present investor-facing insights for global diversification decisions.
-
-## 🚀 Installation & Usage
-
-### 1) Environment Setup
+### 1) 📦 Install dependencies
 ```bash
-# install uv (if needed)
+# install uv if not installed
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# install project dependencies
+# from repo root
 uv sync
 ```
 
-This repository follows a modern `src/` layout with explicit package boundaries
-via `__init__.py` files under `src/`.
+### 2) ▶️ Launch the app
+```bash
+uv run streamlit run app/hk_etf_intelligence_app.py
+```
 
-### 2) Run Core Data Pipeline
+### 3) 📂 Minimum data required for full app experience
+- `data/etf/summary/ETP_Data_Export.xlsx`
+- `data/etf/ohlcv/<ticker>/ohlcv.parquet`
+- `data/etf/holdings/top10/<ticker>/top_holdings.parquet`
+- `model_output/dna/cluster_views/cluster_perspectives.parquet`
+- `model_output/dna/advisory/home_bias_candidates.parquet`
+- `model_output/dna/advisory/hidden_twin_candidates.parquet`
+- `model_output/synpse/news_events_run_*/news_event_topk_matches.csv`
+
+> 💡 **Note:** If your local repo uses `data/ETF/` (uppercase) instead of `data/etf/`, the app automatically falls back.
+
+## 📘 App Usage Guide
+
+### 🗂️ Tabs
+- **1W Winners/Losers:**
+  - overall top and bottom weekly performers
+  - top/bottom 5 by category (`Equity`, `Commodity`, `Fixed Income`)
+- **ETF Screener:**
+  - search by ticker/name
+  - filter by category and numeric ranges
+  - push selected ETF into Explorer and Chatbot context
+- **ETF Explorer:**
+  - 1-year close-price trend
+  - top holdings table with symbol + name + weight
+- **AI Chatbot:**
+  - backend options: `transformers`, `ollama`, `vllm`
+  - returns response + evidence
+
+### 🔌 Chatbot backends
+- **`transformers`** (default): local in-process model
+- **`ollama`:** requires local Ollama endpoint (`http://localhost:11434`)
+- **`vllm`:** requires local vLLM endpoint (`http://localhost:8000`)
+
+For `transformers`, first response includes model load time; later responses reuse loaded model in the same app process.
+
+## 🛠️ Full Pipeline Commands
+
+### 🧬 Core ETF pipeline
 ```bash
 uv run python src/etf_pipeline.py
 ```
@@ -222,7 +97,7 @@ uv run python src/etf_pipeline.py --summary-file "data/etf/summary/ETP_Data_Expo
 uv run python src/etf_pipeline.py --no-headless
 ```
 
-### 3) Run Financial DNA Modules
+### 🧬 Financial DNA
 ```bash
 uv run python src/model/dna/data_engine.py
 uv run python src/model/dna/model_core.py
@@ -230,68 +105,135 @@ uv run python src/model/dna/advisory_logic.py
 uv run python src/model/dna/visualize_clusters.py
 ```
 
-Run the full DNA pipeline in one command:
+Run all DNA steps:
 ```bash
 uv run python src/model/dna/run.py
 ```
 
-### 4) Run Data Fetchers Individually
+### 📡 Data fetchers
 ```bash
 uv run python src/data_ingestion/provider/yfinance/etf_market_data_fetcher.py
 uv run python src/data_ingestion/provider/yfinance/etf_top_holdings_data_fetcher.py
 ```
 
-### 5) Synapse Usage Guide
+### 🔗 Synapse
 ```bash
-# Build / refresh ETF profiles from document corpus
+# build ETF profiles
 uv run python src/text_extraction/pdf_text_extractor.py
 
-# Quick query test (profile corpus, fast preset)
+# quick query test
 uv run python src/model/synapse/model.py --query "Fed pause supports duration-sensitive assets" --top-k 5
 
-# Side-by-side benchmark (profile vs sentence corpus)
-uv run python src/model/synapse/evaluate_benchmark.py --preset fast --top-k 3 --sentence-row-cap 4000
-
-# Full news run with financial sentiment integration
-uv run python src/model/synapse/run_news_events.py \
-  --input-csv "data/news/financial_news_events.csv" \
-  --preset fast \
-  --corpus-mode profile \
-  --top-k 3 \
-  --sentiment-model "ProsusAI/finbert" \
-  --sentiment-weight 0.25
-
-# Semantic stability stress test
-uv run python src/model/synapse/semantic_clustering_stability.py \
-  --preset fast \
-  --corpus-mode profile \
-  --top-k 5 \
-  --num-concepts 100 \
-  --variants-per-concept 20 \
-  --tie-epsilon 0.01 \
-  --enable-light-rerank \
-  --cross-top-n 12
-```
-
-Run the full Synapse pipeline (benchmark + news + stability) in one command:
-```bash
+# run full synapse pipeline
 uv run python src/model/synapse/run.py
 ```
 
-Run the Synthesis model entrypoint:
+### ✨ Synthesis
 ```bash
+# synthesis CLI entrypoint
 uv run python src/model/synthesis/run.py
 ```
 
-Default model outputs now go to:
-- `model_output/dna/...`
-- `model_output/synpse/...`
-- `model_output/Synthesis/...`
+### 📝 QnA generation and fine-tuning
+```bash
+# generate QnA for one ticker
+uv run python src/model/synthesis/generate_finetune_qa.py \
+  --csv-dir "data/etf/documentation/02800/csv" \
+  --output-dir "model_output/Synthesis/finetune" \
+  --ticker 02800 \
+  --max-pairs 240
 
-## 🎓 Academic Foundation
-This project is developed in an HKU academic context and is grounded in quantitative portfolio research.  
-The clustering design is inspired by **Agarwal et al. (2017)** and related literature on PCA-driven stock portfolio structuring, adapted here for ETF-level diversification and home-bias mitigation in the Hong Kong market.
+# generate QnA for all tickers
+uv run python src/model/synthesis/generate_finetune_qa.py \
+  --all-csv \
+  --documentation-root "data/etf/documentation" \
+  --output-dir "model_output/Synthesis/finetune_all" \
+  --max-pairs 40
+```
+
+Fine-tune Qwen:
+```bash
+uv run python src/model/synthesis/finetune_qwen.py \
+  --dataset-path "model_output/Synthesis/finetune_all/all_tickers_finetune_qa_chatml.jsonl" \
+  --output-dir "model_output/Synthesis/finetuned/qwen2.5_7b_lora_full" \
+  --model-name "Qwen/Qwen2.5-7B-Instruct" \
+  --epochs 1 \
+  --batch-size 1 \
+  --grad-accum 16 \
+  --max-length 1024
+```
+
+## 🗂️ Project Structure
+```text
+8017Group4.1/
+├── app/
+│   ├── chatbot_app.py
+│   └── hk_etf_intelligence_app.py
+├── MODEL_DETAILS.md
+├── data/
+│   └── etf/
+│       ├── instruments/
+│       ├── summary/
+│       ├── ohlcv/
+│       ├── market_cap/
+│       ├── holdings/top10/
+│       └── documentation/<ticker>/{pdf,csv}/
+├── model_output/
+│   ├── dna/
+│   ├── synpse/
+│   └── Synthesis/
+│       └── finetune_all/
+├── src/
+│   ├── etf_pipeline.py
+│   ├── data_ingestion/provider/
+│   ├── text_extraction/
+│   └── model/
+│       ├── dna/
+│       ├── synapse/
+│       └── synthesis/
+├── pyproject.toml
+└── README.md
+```
+
+## ❓ App FAQ
+
+### 1) App starts but some tabs are empty
+Most likely some local files are missing. Check:
+- `ETP_Data_Export.xlsx` for screener
+- `ohlcv.parquet` for price and winners/losers
+- `top_holdings.parquet` for holdings table
+- DNA/Synapse outputs for chatbot evidence
+
+### 2) Chatbot is slow on first response
+This is expected for `transformers` backend because model weights load on first call.
+Later calls are faster in the same process.
+
+### 3) Why does chatbot fail with backend errors?
+- `ollama` needs local service on `localhost:11434`
+- `vllm` needs local service on `localhost:8000`
+- `transformers` needs local compute/memory and model access
+
+### 4) Why do I see `data/ETF` vs `data/etf` path confusion?
+The app handles both automatically. If one folder is missing, it falls back to the other.
+
+### 5) Why do holdings sometimes show limited columns?
+Holdings schemas may vary by source/version. The app tries to map columns robustly and display `Symbol`, `Name`, and `Weight (%)` when available.
+
+### 6) How do I quickly test that synthesis data exists?
+```bash
+uv run python src/model/synthesis/run.py --ticker 2800 --query "What are key risks?"
+```
+
+## 🧰 Tech Stack
+- Python 3.10+
+- pandas, numpy, scikit-learn
+- sentence-transformers, transformers, torch
+- streamlit, plotly
+- yfinance
+
+## 🎓 Academic Context
+This project was developed in an HKU academic setting for ETF diversification research and investor-facing explainability.
 
 ## ⚠️ Disclaimer
 This repository is for academic and research purposes only.  
-It does not constitute investment advice, solicitation, or a recommendation to buy/sell any security.
+It is **not** investment advice or a recommendation to buy/sell any security.

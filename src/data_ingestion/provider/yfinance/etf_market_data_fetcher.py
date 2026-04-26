@@ -57,12 +57,16 @@ def save_hkex_data(symbol: str, start_date: str, end_date: str) -> None:
     mkt_cap_value = info.get("marketCap")
 
     if mkt_cap_value:
-        df_mkt_cap = pd.DataFrame([{
-            "symbol": ticker_symbol,
-            "market_cap": mkt_cap_value,
-            "currency": info.get("currency", "HKD"),
-            "timestamp": pd.Timestamp.now(),
-        }])
+        df_mkt_cap = pd.DataFrame(
+            [
+                {
+                    "symbol": ticker_symbol,
+                    "market_cap": mkt_cap_value,
+                    "currency": info.get("currency", "HKD"),
+                    "timestamp": pd.Timestamp.now(),
+                }
+            ]
+        )
 
         df_mkt_cap.to_parquet(str(mkt_cap_path / "market_cap.parquet"))
         print(f"Saved Market Cap data to {mkt_cap_path}")

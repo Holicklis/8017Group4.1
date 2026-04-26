@@ -1,0 +1,44 @@
+{
+  "input_csv": "/Users/hunglun/Library/Mobile Documents/com~apple~CloudDocs/Study/HKU_STAT/2025_Sem2/STAT8020/Project/8017Group4.1/data/news/financial_news_events.csv",
+  "output_dir": "/Users/hunglun/Library/Mobile Documents/com~apple~CloudDocs/Study/HKU_STAT/2025_Sem2/STAT8020/Project/8017Group4.1/model_output/synpse/news_events_run_20260425_182225",
+  "rows_input": 3024,
+  "rows_output_topk": 15120,
+  "rows_output_top1": 3024,
+  "preset": "fast",
+  "corpus_mode": "profile",
+  "top_k": 5,
+  "text_col": "Headline",
+  "sentiment_model": "ProsusAI/finbert",
+  "sentiment_weight": 0.25,
+  "topk_output_csv": "/Users/hunglun/Library/Mobile Documents/com~apple~CloudDocs/Study/HKU_STAT/2025_Sem2/STAT8020/Project/8017Group4.1/model_output/synpse/news_events_run_20260425_182225/news_event_topk_matches.csv",
+  "top1_output_csv": "/Users/hunglun/Library/Mobile Documents/com~apple~CloudDocs/Study/HKU_STAT/2025_Sem2/STAT8020/Project/8017Group4.1/model_output/synpse/news_events_run_20260425_182225/news_event_top1_summary.csv",
+  "visualizations": {
+    "top_ticker_frequency_png": "/Users/hunglun/Library/Mobile Documents/com~apple~CloudDocs/Study/HKU_STAT/2025_Sem2/STAT8020/Project/8017Group4.1/model_output/synpse/news_events_run_20260425_182225/top_ticker_frequency.png",
+    "daily_score_volume_html": "/Users/hunglun/Library/Mobile Documents/com~apple~CloudDocs/Study/HKU_STAT/2025_Sem2/STAT8020/Project/8017Group4.1/model_output/synpse/news_events_run_20260425_182225/daily_score_volume.html",
+    "before_after_sentiment_signal_html": "/Users/hunglun/Library/Mobile Documents/com~apple~CloudDocs/Study/HKU_STAT/2025_Sem2/STAT8020/Project/8017Group4.1/model_output/synpse/news_events_run_20260425_182225/before_after_sentiment_signal.html",
+    "event_ticker_patterns_html": "/Users/hunglun/Library/Mobile Documents/com~apple~CloudDocs/Study/HKU_STAT/2025_Sem2/STAT8020/Project/8017Group4.1/model_output/synpse/news_events_run_20260425_182225/event_ticker_patterns.html",
+    "sentiment_distribution_png": "/Users/hunglun/Library/Mobile Documents/com~apple~CloudDocs/Study/HKU_STAT/2025_Sem2/STAT8020/Project/8017Group4.1/model_output/synpse/news_events_run_20260425_182225/sentiment_distribution.png"
+  },
+  "top_ticker_counts": {
+    "03077": 543,
+    "03165": 423,
+    "03081": 314,
+    "03175": 236,
+    "02800": 132,
+    "02840": 112,
+    "03032": 90,
+    "03153": 89,
+    "03486": 88,
+    "03179": 86,
+    "03477": 72,
+    "02836": 60,
+    "02809": 56,
+    "02846": 50,
+    "03129": 49
+  },
+  "sentiment_counts": {
+    "negative": 1667,
+    "positive": 1021,
+    "neutral": 336
+  }
+}

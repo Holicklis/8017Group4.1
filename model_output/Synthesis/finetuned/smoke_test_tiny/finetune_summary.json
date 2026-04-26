@@ -1,0 +1,13 @@
+{
+  "dataset_path": "/Users/hunglun/Library/Mobile Documents/com~apple~CloudDocs/Study/HKU_STAT/2025_Sem2/STAT8020/Project/8017Group4.1/model_output/Synthesis/finetune_all/all_tickers_finetune_qa_chatml.jsonl",
+  "output_dir": "/Users/hunglun/Library/Mobile Documents/com~apple~CloudDocs/Study/HKU_STAT/2025_Sem2/STAT8020/Project/8017Group4.1/model_output/Synthesis/finetuned/smoke_test_tiny",
+  "model_name": "sshleifer/tiny-gpt2",
+  "use_lora": false,
+  "num_rows_raw": 32,
+  "num_rows_encoded": 32,
+  "num_train_rows": 31,
+  "num_eval_rows": 1,
+  "max_length": 256,
+  "max_samples": 32,
+  "device": "cpu"
+}
