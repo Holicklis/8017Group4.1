@@ -284,18 +284,16 @@ class ETFDataProcessor:
 
         df = pd.read_csv(self.instruments_path)
         if "instruments" not in df.columns:
-            raise ValueError(
-                f"Expected 'instruments' column in {self.instruments_path}. "
-                f"Found: {list(df.columns)}"
-            )
+            raise ValueError(f"Expected 'instruments' column in {self.instruments_path}. Found: {list(df.columns)}")
 
-        codes = {
-            code
-            for code in df["instruments"].apply(_to_hkex_code).dropna().tolist()
-        }
+        codes = {code for code in df["instruments"].apply(_to_hkex_code).dropna().tolist()}
         if not codes:
             raise ValueError(f"No valid instrument codes parsed from: {self.instruments_path}")
-        logger.info("Loaded %s allowed HK ETF instruments from %s", len(codes), self.instruments_path)
+        logger.info(
+            "Loaded %s allowed HK ETF instruments from %s",
+            len(codes),
+            self.instruments_path,
+        )
         return codes
 
     def _read_ohlcv_file(self, ticker: str) -> Optional[pd.DataFrame]:
@@ -372,7 +370,9 @@ class ETFDataProcessor:
             "volatility_30d": vol_30d,
             "annualized_volatility": annualized_vol,
             "sharpe_ratio": sharpe_ratio,
-            "return_to_risk_1y": (ret_1y / annualized_vol) if pd.notna(ret_1y) and pd.notna(annualized_vol) and annualized_vol > 0 else np.nan,
+            "return_to_risk_1y": (ret_1y / annualized_vol)
+            if pd.notna(ret_1y) and pd.notna(annualized_vol) and annualized_vol > 0
+            else np.nan,
         }
         features.update(macro_corrs)
         return features
@@ -505,7 +505,12 @@ class ETFDataProcessor:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Build Financial DNA features from metadata + OHLCV parquet.")
     parser.add_argument("--metadata-path", type=Path, default=None, help="Path to ETP_Data_Export.xlsx")
-    parser.add_argument("--ohlcv-dir", type=Path, default=None, help="Directory containing OHLCV parquet files")
+    parser.add_argument(
+        "--ohlcv-dir",
+        type=Path,
+        default=None,
+        help="Directory containing OHLCV parquet files",
+    )
     parser.add_argument("--output-path", type=Path, default=None, help="Output parquet path")
     parser.add_argument(
         "--instruments-path",

@@ -182,7 +182,9 @@ class MultiClusterPCAEngine:
             return x
 
         x_out = x.copy()
-        return_cols = [col for col in ["return_1y", "return_3y", "return_5y", "average_yearly_return"] if col in x_out.columns]
+        return_cols = [
+            col for col in ["return_1y", "return_3y", "return_5y", "average_yearly_return"] if col in x_out.columns
+        ]
         if not return_cols:
             return x_out
 
@@ -286,14 +288,24 @@ class MultiClusterPCAEngine:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run PCA + KMeans cluster perspectives on Financial DNA features.")
     parser.add_argument("--input-path", type=Path, default=None, help="Path to financial_dna.parquet")
-    parser.add_argument("--output-dir", type=Path, default=None, help="Output directory for cluster parquet files")
+    parser.add_argument(
+        "--output-dir",
+        type=Path,
+        default=None,
+        help="Output directory for cluster parquet files",
+    )
     parser.add_argument(
         "--variance-threshold",
         type=float,
         default=0.95,
         help="Target cumulative explained variance for PCA component selection",
     )
-    parser.add_argument("--n-clusters", type=int, default=4, help="Fallback number of KMeans clusters per perspective")
+    parser.add_argument(
+        "--n-clusters",
+        type=int,
+        default=4,
+        help="Fallback number of KMeans clusters per perspective",
+    )
     parser.add_argument(
         "--no-auto-select-k",
         action="store_true",

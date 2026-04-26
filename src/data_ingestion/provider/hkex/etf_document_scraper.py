@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 def _project_root() -> Path:
     """Return project root based on this file location."""
-    return Path(__file__).resolve().parents[5]
+    return Path(__file__).resolve().parents[4]
 
 
 def _default_log_file() -> Path:
@@ -100,7 +100,12 @@ def download_pdfs(driver: webdriver.Chrome, ticker: Union[str, int], folder: Pat
                     logger.info("[%s] Saved: %s", ticker, filename)
                     download_count += 1
                 else:
-                    logger.warning("[%s] Download returned %s: %s", ticker, response.status_code, url)
+                    logger.warning(
+                        "[%s] Download returned %s: %s",
+                        ticker,
+                        response.status_code,
+                        url,
+                    )
             except Exception as exc:
                 logger.error("[%s] Failed %s: %s", ticker, url, exc)
     except Exception:

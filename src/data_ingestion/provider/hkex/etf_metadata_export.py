@@ -13,7 +13,7 @@ DEFAULT_FILENAME = "ETP_Data_Export.xlsx"
 
 def _project_root() -> Path:
     """Return project root based on this file location."""
-    return Path(__file__).resolve().parents[5]
+    return Path(__file__).resolve().parents[4]
 
 
 def _default_summary_dir() -> Path:
@@ -82,9 +82,7 @@ def export_etf_instruments(
 
     all_etf_df = _extract_sorted_unique_instruments(df)
     all_hk_etf_df = _extract_sorted_unique_instruments(df.query("`Stock code*` < 8000"))
-    all_hkd_etf_df = _extract_sorted_unique_instruments(
-        df.query("`Stock code*` < 8000 and `Base currency*` == 'HKD'")
-    )
+    all_hkd_etf_df = _extract_sorted_unique_instruments(df.query("`Stock code*` < 8000 and `Base currency*` == 'HKD'"))
 
     output_files = {
         "all_etf": target_dir / "all_etf.csv",
@@ -97,7 +95,11 @@ def export_etf_instruments(
 
     logger.info("Exported %s instruments to %s", len(all_etf_df), output_files["all_etf"])
     logger.info("Exported %s instruments to %s", len(all_hk_etf_df), output_files["all_hk_etf"])
-    logger.info("Exported %s instruments to %s", len(all_hkd_etf_df), output_files["all_hkd_etf"])
+    logger.info(
+        "Exported %s instruments to %s",
+        len(all_hkd_etf_df),
+        output_files["all_hkd_etf"],
+    )
     return output_files
 
 
@@ -164,9 +166,7 @@ def download_full_etp_list(
             logger.debug("Cookie banner not present or not clickable")
 
         logger.info("Selecting 'Past 1 Day'")
-        period_btn = wait.until(
-            EC.element_to_be_clickable((By.CSS_SELECTOR, "div.etps_period[data-period='d1']"))
-        )
+        period_btn = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "div.etps_period[data-period='d1']")))
         driver.execute_script("arguments[0].click();", period_btn)
         time.sleep(2)
 

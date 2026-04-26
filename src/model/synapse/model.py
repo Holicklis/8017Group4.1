@@ -125,11 +125,7 @@ class ETFNewsEngine:
     def _load_metadata(self, metadata_excel: Path) -> pd.DataFrame:
         metadata = pd.read_excel(metadata_excel).head(-2)
         metadata["ticker"] = (
-            pd.to_numeric(metadata["Stock code*"], errors="coerce")
-            .fillna(0)
-            .astype(int)
-            .astype(str)
-            .str.zfill(5)
+            pd.to_numeric(metadata["Stock code*"], errors="coerce").fillna(0).astype(int).astype(str).str.zfill(5)
         )
         return metadata
 
@@ -282,7 +278,10 @@ class ETFNewsEngine:
         normalized = news_text.lower()
         substitution_rules = [
             (r"\bfomc\b|\bfed\b|\bfederal reserve\b", "fomc"),
-            (r"\brate hikes?\b|\bhigher rates?\b|\bmonetary tightening\b", "interest rate hike"),
+            (
+                r"\brate hikes?\b|\bhigher rates?\b|\bmonetary tightening\b",
+                "interest rate hike",
+            ),
             (r"\brate cuts?\b|\beasing cycle\b", "interest rate cut"),
             (r"\bnonfarm payrolls?\b|\bus labor report\b", "us labor data"),
             (r"\bhang seng tech\b|\bhk tech\b", "hong kong technology equity"),
@@ -299,7 +298,9 @@ class ETFNewsEngine:
         normalized_query = (
             self._canonicalize_query(news_headline) if self.apply_query_canonicalization else news_headline
         )
-        query_text = f"query: {normalized_query}" if self.preset.bi_encoder.startswith("intfloat/e5") else normalized_query
+        query_text = (
+            f"query: {normalized_query}" if self.preset.bi_encoder.startswith("intfloat/e5") else normalized_query
+        )
         query_emb = self.bi_encoder.encode(query_text, convert_to_tensor=True, normalize_embeddings=True)
         retrieve_n = min(len(self.docs_df), max(top_k * self.preset.retrieval_multiplier, top_k))
         hits = util.semantic_search(query_emb, self.corpus_embeddings, top_k=retrieve_n)[0]
@@ -474,10 +475,27 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--top-k", type=int, default=5, help="Top-K results")
     parser.add_argument("--preset", type=str, default="fast", choices=sorted(MODEL_PRESETS.keys()))
     parser.add_argument("--corpus-mode", type=str, default="profile", choices=["profile", "sentence"])
-    parser.add_argument("--enable-cross-encoder", action="store_true", help="Enable cross encoder reranking")
-    parser.add_argument("--disable-cross-encoder", action="store_true", help="Disable cross encoder reranking")
-    parser.add_argument("--cross-top-n", type=int, default=None, help="Number of candidates for cross encoder")
-    parser.add_argument("--run-benchmark", action="store_true", help="Run side-by-side profile vs sentence evaluation")
+    parser.add_argument(
+        "--enable-cross-encoder",
+        action="store_true",
+        help="Enable cross encoder reranking",
+    )
+    parser.add_argument(
+        "--disable-cross-encoder",
+        action="store_true",
+        help="Disable cross encoder reranking",
+    )
+    parser.add_argument(
+        "--cross-top-n",
+        type=int,
+        default=None,
+        help="Number of candidates for cross encoder",
+    )
+    parser.add_argument(
+        "--run-benchmark",
+        action="store_true",
+        help="Run side-by-side profile vs sentence evaluation",
+    )
     return parser.parse_args()
 
 
