@@ -1,0 +1,16 @@
+{
+  "ticker": "03075",
+  "input_dir": "data/etf/documentation/03075/csv",
+  "num_csv_files": 5,
+  "num_qa_pairs": 40,
+  "num_en_pairs": 25,
+  "num_zh_pairs": 15,
+  "max_pairs_requested": 40,
+  "include_zh": true,
+  "outputs": {
+    "csv": "model_output/Synthesis/finetune_all/per_ticker/03075_finetune_qa.csv",
+    "jsonl": "model_output/Synthesis/finetune_all/per_ticker/03075_finetune_qa.jsonl",
+    "chatml_jsonl": "model_output/Synthesis/finetune_all/per_ticker/03075_finetune_qa_chatml.jsonl",
+    "summary": "model_output/Synthesis/finetune_all/per_ticker/03075_finetune_qa_summary.json"
+  }
+}

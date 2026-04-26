@@ -1,0 +1,20 @@
+{
+  "mode": "all_csv",
+  "documentation_root": "data/etf/documentation",
+  "num_csv_dirs_scanned": 211,
+  "num_tickers_succeeded": 211,
+  "num_tickers_failed": 0,
+  "num_total_pairs": 8436,
+  "num_en_pairs": 5213,
+  "num_zh_pairs": 3223,
+  "include_zh": true,
+  "max_pairs_per_ticker": 40,
+  "outputs": {
+    "csv": "model_output/Synthesis/finetune_all/all_tickers_finetune_qa.csv",
+    "jsonl": "model_output/Synthesis/finetune_all/all_tickers_finetune_qa.jsonl",
+    "chatml_jsonl": "model_output/Synthesis/finetune_all/all_tickers_finetune_qa_chatml.jsonl",
+    "summary": "model_output/Synthesis/finetune_all/all_tickers_finetune_qa_summary.json",
+    "per_ticker_dir": "model_output/Synthesis/finetune_all/per_ticker"
+  },
+  "failed_tickers": []
+}

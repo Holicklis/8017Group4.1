@@ -76,7 +76,12 @@ def run_dna_pipeline(
 
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run the full Financial DNA model pipeline.")
-    parser.add_argument("--output-root", type=Path, default=None, help="Root output directory for DNA artifacts")
+    parser.add_argument(
+        "--output-root",
+        type=Path,
+        default=None,
+        help="Root output directory for DNA artifacts",
+    )
     parser.add_argument("--skip-visualization", action="store_true", help="Skip plot generation stage")
     return parser.parse_args()
 

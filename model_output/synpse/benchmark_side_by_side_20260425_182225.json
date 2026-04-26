@@ -1,0 +1,219 @@
+{
+  "sentence_row_cap": 4000,
+  "profile": {
+    "preset": "fast",
+    "corpus_mode": "profile",
+    "examples": 8,
+    "labelled_examples": 0,
+    "top1_precision": null,
+    "topk_recall": null,
+    "avg_latency_ms": 22.49,
+    "p95_latency_ms": 23.7,
+    "details": [
+      {
+        "query": "HKMA interest rate decision impacts Hong Kong money market and short-term liquidity products",
+        "relevant_tickers": [],
+        "predicted_top_k": [
+          "03471",
+          "02835",
+          "02800",
+          "03031",
+          "03037"
+        ],
+        "latency_ms": 30.62
+      },
+      {
+        "query": "Oil price shock hits commodity funds with increased volatility and roll risk",
+        "relevant_tickers": [],
+        "predicted_top_k": [
+          "03175",
+          "03097",
+          "02840",
+          "03047",
+          "03056"
+        ],
+        "latency_ms": 21.33
+      },
+      {
+        "query": "Hang Seng tech selloff pressures Hong Kong equity market with growth-heavy exposure",
+        "relevant_tickers": [],
+        "predicted_top_k": [
+          "02835",
+          "02800",
+          "03423",
+          "03088",
+          "03448"
+        ],
+        "latency_ms": 20.24
+      },
+      {
+        "query": "US labor data surprise shifts bond yields and affects fixed income performance",
+        "relevant_tickers": [],
+        "predicted_top_k": [
+          "03077",
+          "03146",
+          "03411",
+          "03199",
+          "02817"
+        ],
+        "latency_ms": 20.14
+      },
+      {
+        "query": "China policy easing could support mainland focused equities in the near term",
+        "relevant_tickers": [],
+        "predicted_top_k": [
+          "02822",
+          "03167",
+          "03182",
+          "03050",
+          "03437"
+        ],
+        "latency_ms": 19.35
+      },
+      {
+        "query": "Fed rate cut expectations influence short-duration bonds and cash-management products",
+        "relevant_tickers": [],
+        "predicted_top_k": [
+          "03077",
+          "03411",
+          "03472",
+          "03471",
+          "03466"
+        ],
+        "latency_ms": 21.52
+      },
+      {
+        "query": "RMB depreciation risk rises for mainland China equities with currency sensitivity",
+        "relevant_tickers": [],
+        "predicted_top_k": [
+          "03109",
+          "03167",
+          "03003",
+          "02839",
+          "03174"
+        ],
+        "latency_ms": 22.99
+      },
+      {
+        "query": "Dividend strategy under pressure in high-yield Asia equity income products",
+        "relevant_tickers": [],
+        "predicted_top_k": [
+          "03031",
+          "03416",
+          "03417",
+          "03419",
+          "03483"
+        ],
+        "latency_ms": 23.7
+      }
+    ]
+  },
+  "sentence": {
+    "preset": "fast",
+    "corpus_mode": "sentence",
+    "examples": 8,
+    "labelled_examples": 0,
+    "top1_precision": null,
+    "topk_recall": null,
+    "avg_latency_ms": 23.31,
+    "p95_latency_ms": 23.96,
+    "details": [
+      {
+        "query": "HKMA interest rate decision impacts Hong Kong money market and short-term liquidity products",
+        "relevant_tickers": [],
+        "predicted_top_k": [
+          "03152",
+          "03071",
+          "02835",
+          "03056",
+          "03112"
+        ],
+        "latency_ms": 22.68
+      },
+      {
+        "query": "Oil price shock hits commodity funds with increased volatility and roll risk",
+        "relevant_tickers": [],
+        "predicted_top_k": [
+          "03175",
+          "03097",
+          "03175",
+          "03097",
+          "03097"
+        ],
+        "latency_ms": 22.22
+      },
+      {
+        "query": "Hang Seng tech selloff pressures Hong Kong equity market with growth-heavy exposure",
+        "relevant_tickers": [],
+        "predicted_top_k": [
+          "03056",
+          "03112",
+          "03412",
+          "03413",
+          "03426"
+        ],
+        "latency_ms": 24.27
+      },
+      {
+        "query": "US labor data surprise shifts bond yields and affects fixed income performance",
+        "relevant_tickers": [],
+        "predicted_top_k": [
+          "03199",
+          "03156",
+          "03176",
+          "03457",
+          "02818"
+        ],
+        "latency_ms": 23.14
+      },
+      {
+        "query": "China policy easing could support mainland focused equities in the near term",
+        "relevant_tickers": [],
+        "predicted_top_k": [
+          "03111",
+          "02829",
+          "02829",
+          "03199",
+          "02829"
+        ],
+        "latency_ms": 23.4
+      },
+      {
+        "query": "Fed rate cut expectations influence short-duration bonds and cash-management products",
+        "relevant_tickers": [],
+        "predicted_top_k": [
+          "03176",
+          "03457",
+          "03147",
+          "02822",
+          "02829"
+        ],
+        "latency_ms": 23.67
+      },
+      {
+        "query": "RMB depreciation risk rises for mainland China equities with currency sensitivity",
+        "relevant_tickers": [],
+        "predicted_top_k": [
+          "03122",
+          "03041",
+          "02826",
+          "02820",
+          "02839"
+        ],
+        "latency_ms": 23.17
+      },
+      {
+        "query": "Dividend strategy under pressure in high-yield Asia equity income products",
+        "relevant_tickers": [],
+        "predicted_top_k": [
+          "03190",
+          "03437",
+          "03070",
+          "03437",
+          "03187"
+        ],
+        "latency_ms": 23.96
+      }
+    ]
+  }
+}

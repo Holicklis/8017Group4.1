@@ -25,9 +25,10 @@ logging.basicConfig(
 )
 logger = logging.getLogger("ETFPDFProcessor")
 
+
 class ETFPDFProcessor:
     """
-    A professional pipeline to extract, clean, and structure ETF prospectus data 
+    A professional pipeline to extract, clean, and structure ETF prospectus data
     from PDF files into CSV format for LLM fine-tuning and vector embeddings.
     """
 
@@ -173,26 +174,67 @@ class ETFPDFProcessor:
             "size factor",
         ],
         "fx": ["foreign exchange", "currency risk", "fx risk", "exchange rate"],
-        "credit_liquidity": ["credit risk", "liquidity risk", "counterparty", "default risk"],
+        "credit_liquidity": [
+            "credit risk",
+            "liquidity risk",
+            "counterparty",
+            "default risk",
+        ],
         "tracking_error": ["tracking error", "tracking difference", "index tracking"],
-        "concentration": ["concentration risk", "single issuer", "sector concentration"],
+        "concentration": [
+            "concentration risk",
+            "single issuer",
+            "sector concentration",
+        ],
         "derivatives": ["derivatives", "swap", "futures", "options", "synthetic"],
     }
     COMPONENT_KEYWORDS = {
-        "benchmark_index": ["benchmark", "index", "tracked", "tracking", "index provider"],
-        "asset_class": ["asset class", "equity", "bond", "money market", "commodity", "fixed income"],
-        "geographic_focus": ["geographic focus", "hong kong", "china", "asia", "us", "global", "emerging market"],
-        "replication_method": ["full replication", "representative sampling", "synthetic", "physical"],
-        "strategy": ["investment objective", "investment strategy", "objective", "portfolio", "constituent"],
+        "benchmark_index": [
+            "benchmark",
+            "index",
+            "tracked",
+            "tracking",
+            "index provider",
+        ],
+        "asset_class": [
+            "asset class",
+            "equity",
+            "bond",
+            "money market",
+            "commodity",
+            "fixed income",
+        ],
+        "geographic_focus": [
+            "geographic focus",
+            "hong kong",
+            "china",
+            "asia",
+            "us",
+            "global",
+            "emerging market",
+        ],
+        "replication_method": [
+            "full replication",
+            "representative sampling",
+            "synthetic",
+            "physical",
+        ],
+        "strategy": [
+            "investment objective",
+            "investment strategy",
+            "objective",
+            "portfolio",
+            "constituent",
+        ],
         "distribution": ["distribution policy", "dividend policy"],
     }
 
     def __init__(self, data_root: Optional[Union[str, Path]] = None):
         """
         Initializes the processor with path management.
-        
+
         Args:
-            data_root: Path to the 'data' directory. If None, it resolves 
+            data_root: Path to the 'data' directory. If None, it resolves
                        relative to this script's location.
         """
         if data_root:
@@ -209,7 +251,7 @@ class ETFPDFProcessor:
                 if path.exists():
                     self.etf_doc_path = path
                     break
-        
+
         if not self.data_dir.exists():
             logger.error(f"Data directory not found at: {self.data_dir}")
         else:
@@ -244,19 +286,19 @@ class ETFPDFProcessor:
         """
         if not text:
             return ""
-        
+
         # 1. Remove dot leaders (....) common in Tables of Contents
-        text = re.sub(r'\.{2,}', ' ', text)
-        
+        text = re.sub(r"\.{2,}", " ", text)
+
         # 2. Remove Page Indicators (e.g., "- i -", "- 1 -", "- 22 -")
-        text = re.sub(r'-\s*[ivx0-9]+\s*-', '', text, flags=re.IGNORECASE)
-        
+        text = re.sub(r"-\s*[ivx0-9]+\s*-", "", text, flags=re.IGNORECASE)
+
         # 3. Standardize whitespace (remove newlines/tabs)
-        text = text.replace('\n', ' ').replace('\t', ' ')
-        
+        text = text.replace("\n", " ").replace("\t", " ")
+
         # 4. Collapse multiple spaces
-        text = re.sub(r'\s+', ' ', text)
-        
+        text = re.sub(r"\s+", " ", text)
+
         return text.strip()
 
     def _merge_fragments(self, sentences: List[str]) -> List[str]:
@@ -265,13 +307,13 @@ class ETFPDFProcessor:
         """
         merged = []
         current_buffer = ""
-        
-        terminal_punctuation = {'.', '!', '?', '”', '"'}
+
+        terminal_punctuation = {".", "!", "?", "”", '"'}
 
         for segment in sentences:
             if not segment:
                 continue
-            
+
             if not current_buffer:
                 current_buffer = segment
             else:
@@ -281,10 +323,10 @@ class ETFPDFProcessor:
                 else:
                     merged.append(current_buffer)
                     current_buffer = segment
-        
+
         if current_buffer:
             merged.append(current_buffer)
-            
+
         return merged
 
     def _doc_type(self, file_path: Path) -> str:
@@ -520,12 +562,12 @@ class ETFPDFProcessor:
 
     def extract_and_clean(self, pdf_path: Path) -> Optional[Path]:
         """
-        Extracts text from a single PDF, applies the cleaning pipeline, 
+        Extracts text from a single PDF, applies the cleaning pipeline,
         and saves to a peer 'csv' directory.
-        
+
         Args:
             pdf_path: Path object pointing to the source PDF.
-            
+
         Returns:
             Path to the generated CSV if successful, else None.
         """
@@ -546,19 +588,16 @@ class ETFPDFProcessor:
             # Combine and split into initial segments (primitive split)
             full_text = " ".join(raw_content)
             # Use regex split to keep separators or split by common sentence ends
-            initial_segments = [s.strip() for s in re.split(r'(?<=[.!?]) +', full_text) if len(s.strip()) > 5]
-            
+            initial_segments = [s.strip() for s in re.split(r"(?<=[.!?]) +", full_text) if len(s.strip()) > 5]
+
             # Apply logic to merge broken fragments
             final_sentences = self._merge_fragments(initial_segments)
 
             # Create DataFrame
-            df_sentences = pd.DataFrame({
-                "sentence_id": range(len(final_sentences)),
-                "text": final_sentences
-            })
+            df_sentences = pd.DataFrame({"sentence_id": range(len(final_sentences)), "text": final_sentences})
 
             # Save with utf-8-sig for Excel compatibility in HK/Asia regions
-            df_sentences.to_csv(csv_output_path, index=False, encoding='utf-8-sig')
+            df_sentences.to_csv(csv_output_path, index=False, encoding="utf-8-sig")
             logger.info(f"Processed: {pdf_path.name}")
             return csv_output_path
 
@@ -589,7 +628,10 @@ class ETFPDFProcessor:
 
             with ThreadPoolExecutor(max_workers=worker_count) as executor:
                 futures = {
-                    executor.submit(self.extract_and_clean, pdf_path): (ticker, pdf_path)
+                    executor.submit(self.extract_and_clean, pdf_path): (
+                        ticker,
+                        pdf_path,
+                    )
                     for ticker, pdf_path in jobs
                 }
                 for future in tqdm(as_completed(futures), total=len(futures), desc="Processing PDFs"):
@@ -611,6 +653,7 @@ class ETFPDFProcessor:
         if generate_profiles:
             self.generate_etf_profiles()
         logger.info("Pipeline execution complete.")
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Extract ETF PDF text and build ETF profiles.")

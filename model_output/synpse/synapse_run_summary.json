@@ -1,0 +1,83 @@
+{
+  "output_root": "/Users/hunglun/Library/Mobile Documents/com~apple~CloudDocs/Study/HKU_STAT/2025_Sem2/STAT8020/Project/8017Group4.1/model_output/synpse",
+  "timestamp": "2026-04-25T18:21:50.253658",
+  "benchmark_json": "/Users/hunglun/Library/Mobile Documents/com~apple~CloudDocs/Study/HKU_STAT/2025_Sem2/STAT8020/Project/8017Group4.1/model_output/synpse/benchmark_side_by_side_20260425_182225.json",
+  "news_run": {
+    "input_csv": "/Users/hunglun/Library/Mobile Documents/com~apple~CloudDocs/Study/HKU_STAT/2025_Sem2/STAT8020/Project/8017Group4.1/data/news/financial_news_events.csv",
+    "output_dir": "/Users/hunglun/Library/Mobile Documents/com~apple~CloudDocs/Study/HKU_STAT/2025_Sem2/STAT8020/Project/8017Group4.1/model_output/synpse/news_events_run_20260425_182225",
+    "rows_input": 3024,
+    "rows_output_topk": 15120,
+    "rows_output_top1": 3024,
+    "preset": "fast",
+    "corpus_mode": "profile",
+    "top_k": 5,
+    "text_col": "Headline",
+    "sentiment_model": "ProsusAI/finbert",
+    "sentiment_weight": 0.25,
+    "topk_output_csv": "/Users/hunglun/Library/Mobile Documents/com~apple~CloudDocs/Study/HKU_STAT/2025_Sem2/STAT8020/Project/8017Group4.1/model_output/synpse/news_events_run_20260425_182225/news_event_topk_matches.csv",
+    "top1_output_csv": "/Users/hunglun/Library/Mobile Documents/com~apple~CloudDocs/Study/HKU_STAT/2025_Sem2/STAT8020/Project/8017Group4.1/model_output/synpse/news_events_run_20260425_182225/news_event_top1_summary.csv",
+    "visualizations": {
+      "top_ticker_frequency_png": "/Users/hunglun/Library/Mobile Documents/com~apple~CloudDocs/Study/HKU_STAT/2025_Sem2/STAT8020/Project/8017Group4.1/model_output/synpse/news_events_run_20260425_182225/top_ticker_frequency.png",
+      "daily_score_volume_html": "/Users/hunglun/Library/Mobile Documents/com~apple~CloudDocs/Study/HKU_STAT/2025_Sem2/STAT8020/Project/8017Group4.1/model_output/synpse/news_events_run_20260425_182225/daily_score_volume.html",
+      "before_after_sentiment_signal_html": "/Users/hunglun/Library/Mobile Documents/com~apple~CloudDocs/Study/HKU_STAT/2025_Sem2/STAT8020/Project/8017Group4.1/model_output/synpse/news_events_run_20260425_182225/before_after_sentiment_signal.html",
+      "event_ticker_patterns_html": "/Users/hunglun/Library/Mobile Documents/com~apple~CloudDocs/Study/HKU_STAT/2025_Sem2/STAT8020/Project/8017Group4.1/model_output/synpse/news_events_run_20260425_182225/event_ticker_patterns.html",
+      "sentiment_distribution_png": "/Users/hunglun/Library/Mobile Documents/com~apple~CloudDocs/Study/HKU_STAT/2025_Sem2/STAT8020/Project/8017Group4.1/model_output/synpse/news_events_run_20260425_182225/sentiment_distribution.png"
+    },
+    "top_ticker_counts": {
+      "03077": 543,
+      "03165": 423,
+      "03081": 314,
+      "03175": 236,
+      "02800": 132,
+      "02840": 112,
+      "03032": 90,
+      "03153": 89,
+      "03486": 88,
+      "03179": 86,
+      "03477": 72,
+      "02836": 60,
+      "02809": 56,
+      "02846": 50,
+      "03129": 49
+    },
+    "sentiment_counts": {
+      "negative": 1667,
+      "positive": 1021,
+      "neutral": 336
+    },
+    "summary_json": "/Users/hunglun/Library/Mobile Documents/com~apple~CloudDocs/Study/HKU_STAT/2025_Sem2/STAT8020/Project/8017Group4.1/model_output/synpse/news_events_run_20260425_182225/run_summary.json"
+  },
+  "stability_run": {
+    "output_dir": "/Users/hunglun/Library/Mobile Documents/com~apple~CloudDocs/Study/HKU_STAT/2025_Sem2/STAT8020/Project/8017Group4.1/model_output/synpse/stability_run_20260425_182343",
+    "preset": "fast",
+    "corpus_mode": "profile",
+    "top_k": 5,
+    "num_concepts": 30,
+    "variants_per_concept": 10,
+    "tie_epsilon": 0.01,
+    "use_light_rerank": true,
+    "cross_top_n": 12,
+    "apply_query_canonicalization": true,
+    "synthetic_rows": 300,
+    "prediction_rows": 1500,
+    "overall_avg_topk_jaccard": 0.5681,
+    "overall_avg_top1_consistency": 0.6833,
+    "overall_avg_tie_bucket_jaccard": 0.5467,
+    "overall_avg_score_corr_ticker_pearson": -0.1153,
+    "overall_avg_score_corr_ticker_spearman": 0.3015,
+    "overall_avg_rank_score_corr": 0.9088,
+    "overall_avg_score_gap_delta": 0.0081,
+    "overall_avg_score_spread": 0.0158,
+    "synthetic_csv": "/Users/hunglun/Library/Mobile Documents/com~apple~CloudDocs/Study/HKU_STAT/2025_Sem2/STAT8020/Project/8017Group4.1/model_output/synpse/stability_run_20260425_182343/synthetic_financial_headlines.csv",
+    "predictions_csv": "/Users/hunglun/Library/Mobile Documents/com~apple~CloudDocs/Study/HKU_STAT/2025_Sem2/STAT8020/Project/8017Group4.1/model_output/synpse/stability_run_20260425_182343/stability_topk_predictions.csv",
+    "concept_stability_csv": "/Users/hunglun/Library/Mobile Documents/com~apple~CloudDocs/Study/HKU_STAT/2025_Sem2/STAT8020/Project/8017Group4.1/model_output/synpse/stability_run_20260425_182343/concept_stability.csv",
+    "domain_stability_csv": "/Users/hunglun/Library/Mobile Documents/com~apple~CloudDocs/Study/HKU_STAT/2025_Sem2/STAT8020/Project/8017Group4.1/model_output/synpse/stability_run_20260425_182343/domain_stability.csv",
+    "plots": {
+      "stability_jaccard_histogram_png": "/Users/hunglun/Library/Mobile Documents/com~apple~CloudDocs/Study/HKU_STAT/2025_Sem2/STAT8020/Project/8017Group4.1/model_output/synpse/stability_run_20260425_182343/stability_jaccard_histogram.png",
+      "stability_by_domain_png": "/Users/hunglun/Library/Mobile Documents/com~apple~CloudDocs/Study/HKU_STAT/2025_Sem2/STAT8020/Project/8017Group4.1/model_output/synpse/stability_run_20260425_182343/stability_by_domain.png",
+      "concept_stability_map_html": "/Users/hunglun/Library/Mobile Documents/com~apple~CloudDocs/Study/HKU_STAT/2025_Sem2/STAT8020/Project/8017Group4.1/model_output/synpse/stability_run_20260425_182343/concept_stability_map.html",
+      "stability_score_correlation_histogram_png": "/Users/hunglun/Library/Mobile Documents/com~apple~CloudDocs/Study/HKU_STAT/2025_Sem2/STAT8020/Project/8017Group4.1/model_output/synpse/stability_run_20260425_182343/stability_score_correlation_histogram.png"
+    },
+    "summary_json": "/Users/hunglun/Library/Mobile Documents/com~apple~CloudDocs/Study/HKU_STAT/2025_Sem2/STAT8020/Project/8017Group4.1/model_output/synpse/stability_run_20260425_182343/stability_summary.json"
+  }
+}

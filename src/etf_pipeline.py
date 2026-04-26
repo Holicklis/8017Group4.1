@@ -16,11 +16,11 @@ from typing import List, Optional
 
 import pandas as pd
 
-from data_ingestion.provider.hkex.hkex_etf.etf_document_scraper import (
+from data_ingestion.provider.hkex.etf_document_scraper import (
     configure_logging,
     scrape_many_tickers,
 )
-from data_ingestion.provider.hkex.hkex_etf.etf_metadata_export import download_full_etp_list
+from data_ingestion.provider.hkex.etf_metadata_export import download_full_etp_list
 from text_extraction.pdf_text_extractor import ETFPDFProcessor
 
 logger = logging.getLogger(__name__)
@@ -70,10 +70,7 @@ def _extract_ticker_list(summary_file: Path) -> List[str]:
             )
             return [str(value).zfill(5) for value in series_codes.tolist()]
 
-    raise ValueError(
-        f"Cannot find ticker column in {summary_file}. "
-        f"Expected one of: {', '.join(ticker_candidates)}"
-    )
+    raise ValueError(f"Cannot find ticker column in {summary_file}. Expected one of: {', '.join(ticker_candidates)}")
 
 
 def run_pipeline(

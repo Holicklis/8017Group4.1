@@ -1,0 +1,377 @@
+{
+  "{\"backend\": \"transformers\", \"dna_cluster_mtime\": 1777108439.4388902, \"dna_hidden_twin_mtime\": 1777108462.2559133, \"dna_home_bias_mtime\": 1777108462.2541523, \"enable_query_similarity\": false, \"max_alerts\": 8, \"qwen_model\": \"Qwen/Qwen2.5-7B-Instruct\", \"similarity_threshold\": 0.7, \"synapse_topk_mtime\": 1777112623.0131218, \"synapse_topk_path\": \"/Users/hunglun/Library/Mobile Documents/com~apple~CloudDocs/Study/HKU_STAT/2025_Sem2/STAT8020/Project/8017Group4.1/model_output/synpse/news_events_run_20260425_182225/news_event_topk_matches.csv\", \"ticker\": \"2800\", \"top_alt_k\": 3, \"user_query\": \"Should I diversify away from HK tech?\"}": {
+    "response": "You asked about 2800. Here is a practical fallback plan: check if your portfolio is over-concentrated in HK/single-theme risk, review alternatives (international diversification ETFs), and rebalance in tranches to reduce drawdown risk.",
+    "data_evidence": {
+      "ticker": "2800",
+      "cluster_id": null,
+      "top_3_alternatives": [],
+      "news_similarity_scores": [
+        {
+          "date": "2025-08-14",
+          "headline": "Consumer Discretionary stocks outperform as spending increases",
+          "synapse_similarity_score": 0.820211,
+          "query_similarity": null
+        },
+        {
+          "date": "2025-08-14",
+          "headline": "Quarterly report shows surprising losses for retail giants",
+          "synapse_similarity_score": 0.806925,
+          "query_similarity": null
+        },
+        {
+          "date": "2025-08-14",
+          "headline": "Energy company's dividend hike excites shareholders",
+          "synapse_similarity_score": 0.788004,
+          "query_similarity": null
+        },
+        {
+          "date": "2025-08-14",
+          "headline": "Merger talks between two banks fall through",
+          "synapse_similarity_score": 0.773815,
+          "query_similarity": null
+        },
+        {
+          "date": "2025-08-13",
+          "headline": "Real Estate sector shows signs of overheating as interest rates fall",
+          "synapse_similarity_score": 0.89246,
+          "query_similarity": null
+        },
+        {
+          "date": "2025-08-13",
+          "headline": "Banking stocks dip after a major scandal is revealed",
+          "synapse_similarity_score": 0.803723,
+          "query_similarity": null
+        },
+        {
+          "date": "2025-08-13",
+          "headline": "Financial services stocks rally on strong profit margins",
+          "synapse_similarity_score": 0.795866,
+          "query_similarity": null
+        },
+        {
+          "date": "2025-08-13",
+          "headline": "Quarterly report shows surprising losses for retail giants",
+          "synapse_similarity_score": 0.784753,
+          "query_similarity": null
+        }
+      ]
+    },
+    "language": "en",
+    "backend": "transformers",
+    "model": "Qwen/Qwen2.5-7B-Instruct",
+    "cache_hit": false,
+    "cached_at": "2026-04-26T12:36:37.655715"
+  },
+  "{\"backend\": \"transformers\", \"dna_cluster_mtime\": 1777108439.4388902, \"dna_hidden_twin_mtime\": 1777108462.2559133, \"dna_home_bias_mtime\": 1777108462.2541523, \"enable_query_similarity\": false, \"max_alerts\": 8, \"qwen_model\": \"Qwen/Qwen2.5-7B-Instruct\", \"similarity_threshold\": 0.7, \"synapse_topk_mtime\": 1777112623.0131218, \"synapse_topk_path\": \"/Users/hunglun/Library/Mobile Documents/com~apple~CloudDocs/Study/HKU_STAT/2025_Sem2/STAT8020/Project/8017Group4.1/model_output/synpse/news_events_run_20260425_182225/news_event_topk_matches.csv\", \"ticker\": \"2800\", \"top_alt_k\": 3, \"user_query\": \"what is this etf track 2800\"}": {
+    "response": "You asked about 2800. Here is a practical fallback plan: check if your portfolio is over-concentrated in HK/single-theme risk, review alternatives (international diversification ETFs), and rebalance in tranches to reduce drawdown risk.",
+    "data_evidence": {
+      "ticker": "2800",
+      "cluster_id": null,
+      "top_3_alternatives": [],
+      "news_similarity_scores": [
+        {
+          "date": "2025-08-14",
+          "headline": "Consumer Discretionary stocks outperform as spending increases",
+          "synapse_similarity_score": 0.820211,
+          "query_similarity": null
+        },
+        {
+          "date": "2025-08-14",
+          "headline": "Quarterly report shows surprising losses for retail giants",
+          "synapse_similarity_score": 0.806925,
+          "query_similarity": null
+        },
+        {
+          "date": "2025-08-14",
+          "headline": "Energy company's dividend hike excites shareholders",
+          "synapse_similarity_score": 0.788004,
+          "query_similarity": null
+        },
+        {
+          "date": "2025-08-14",
+          "headline": "Merger talks between two banks fall through",
+          "synapse_similarity_score": 0.773815,
+          "query_similarity": null
+        },
+        {
+          "date": "2025-08-13",
+          "headline": "Real Estate sector shows signs of overheating as interest rates fall",
+          "synapse_similarity_score": 0.89246,
+          "query_similarity": null
+        },
+        {
+          "date": "2025-08-13",
+          "headline": "Banking stocks dip after a major scandal is revealed",
+          "synapse_similarity_score": 0.803723,
+          "query_similarity": null
+        },
+        {
+          "date": "2025-08-13",
+          "headline": "Financial services stocks rally on strong profit margins",
+          "synapse_similarity_score": 0.795866,
+          "query_similarity": null
+        },
+        {
+          "date": "2025-08-13",
+          "headline": "Quarterly report shows surprising losses for retail giants",
+          "synapse_similarity_score": 0.784753,
+          "query_similarity": null
+        }
+      ]
+    },
+    "language": "en",
+    "backend": "transformers",
+    "model": "Qwen/Qwen2.5-7B-Instruct",
+    "cache_hit": false,
+    "cached_at": "2026-04-26T13:41:42.138307"
+  },
+  "{\"backend\": \"transformers\", \"dna_cluster_mtime\": 1777108439.4388902, \"dna_hidden_twin_mtime\": 1777108462.2559133, \"dna_home_bias_mtime\": 1777108462.2541523, \"enable_query_similarity\": false, \"max_alerts\": 8, \"prompt_policy_version\": \"info-first-v2\", \"qwen_model\": \"Qwen/Qwen2.5-7B-Instruct\", \"similarity_threshold\": 0.7, \"synapse_topk_mtime\": 1777112623.0131218, \"synapse_topk_path\": \"/Users/hunglun/Library/Mobile Documents/com~apple~CloudDocs/Study/HKU_STAT/2025_Sem2/STAT8020/Project/8017Group4.1/model_output/synpse/news_events_run_20260425_182225/news_event_topk_matches.csv\", \"ticker\": \"2800\", \"top_alt_k\": 3, \"user_query\": \"what is this etf track 2800\"}": {
+    "response": "You asked about 2800. The local model could not produce a full response in time, so here is a concise factual fallback: confirm the ETF's exact benchmark/index in the fund name and official KFS/prospectus.",
+    "data_evidence": {
+      "ticker": "2800",
+      "cluster_id": null,
+      "top_3_alternatives": [],
+      "news_similarity_scores": [
+        {
+          "date": "2025-08-14",
+          "headline": "Consumer Discretionary stocks outperform as spending increases",
+          "synapse_similarity_score": 0.820211,
+          "query_similarity": null
+        },
+        {
+          "date": "2025-08-14",
+          "headline": "Quarterly report shows surprising losses for retail giants",
+          "synapse_similarity_score": 0.806925,
+          "query_similarity": null
+        },
+        {
+          "date": "2025-08-14",
+          "headline": "Energy company's dividend hike excites shareholders",
+          "synapse_similarity_score": 0.788004,
+          "query_similarity": null
+        },
+        {
+          "date": "2025-08-14",
+          "headline": "Merger talks between two banks fall through",
+          "synapse_similarity_score": 0.773815,
+          "query_similarity": null
+        },
+        {
+          "date": "2025-08-13",
+          "headline": "Real Estate sector shows signs of overheating as interest rates fall",
+          "synapse_similarity_score": 0.89246,
+          "query_similarity": null
+        },
+        {
+          "date": "2025-08-13",
+          "headline": "Banking stocks dip after a major scandal is revealed",
+          "synapse_similarity_score": 0.803723,
+          "query_similarity": null
+        },
+        {
+          "date": "2025-08-13",
+          "headline": "Financial services stocks rally on strong profit margins",
+          "synapse_similarity_score": 0.795866,
+          "query_similarity": null
+        },
+        {
+          "date": "2025-08-13",
+          "headline": "Quarterly report shows surprising losses for retail giants",
+          "synapse_similarity_score": 0.784753,
+          "query_similarity": null
+        }
+      ]
+    },
+    "language": "en",
+    "backend": "transformers",
+    "model": "Qwen/Qwen2.5-7B-Instruct",
+    "cache_hit": false,
+    "cached_at": "2026-04-26T13:47:14.018863"
+  },
+  "{\"backend\": \"transformers\", \"dna_cluster_mtime\": 1777108439.4388902, \"dna_hidden_twin_mtime\": 1777108462.2559133, \"dna_home_bias_mtime\": 1777108462.2541523, \"enable_direct_qa_lookup\": true, \"enable_query_similarity\": false, \"max_alerts\": 8, \"prompt_policy_version\": \"info-first-v2\", \"qa_per_ticker_root\": \"/Users/hunglun/Library/Mobile Documents/com~apple~CloudDocs/Study/HKU_STAT/2025_Sem2/STAT8020/Project/8017Group4.1/model_output/Synthesis/finetune_all/per_ticker\", \"qwen_model\": \"Qwen/Qwen2.5-7B-Instruct\", \"similarity_threshold\": 0.7, \"synapse_topk_mtime\": 1777112623.0131218, \"synapse_topk_path\": \"/Users/hunglun/Library/Mobile Documents/com~apple~CloudDocs/Study/HKU_STAT/2025_Sem2/STAT8020/Project/8017Group4.1/model_output/synpse/news_events_run_20260425_182225/news_event_topk_matches.csv\", \"ticker\": \"2800\", \"top_alt_k\": 3, \"user_query\": \"How closely does ETF 02800 aim to replicate its benchmark?\"}": {
+    "response": "Objective and Investment Strategy Objective TraHK's investment objective is to provide investment results that closely correspond to the performance of the Hang Seng Index (\"Index\"). Objective and Investment Strategy Objective The investment objective (the \"Investment Objective\") of TraHK shall be to provide investment",
+    "data_evidence": {
+      "ticker": "2800",
+      "cluster_id": null,
+      "top_3_alternatives": [],
+      "news_similarity_scores": [
+        {
+          "date": "2025-08-14",
+          "headline": "Consumer Discretionary stocks outperform as spending increases",
+          "synapse_similarity_score": 0.820211,
+          "query_similarity": null
+        },
+        {
+          "date": "2025-08-14",
+          "headline": "Quarterly report shows surprising losses for retail giants",
+          "synapse_similarity_score": 0.806925,
+          "query_similarity": null
+        },
+        {
+          "date": "2025-08-14",
+          "headline": "Energy company's dividend hike excites shareholders",
+          "synapse_similarity_score": 0.788004,
+          "query_similarity": null
+        },
+        {
+          "date": "2025-08-14",
+          "headline": "Merger talks between two banks fall through",
+          "synapse_similarity_score": 0.773815,
+          "query_similarity": null
+        },
+        {
+          "date": "2025-08-13",
+          "headline": "Real Estate sector shows signs of overheating as interest rates fall",
+          "synapse_similarity_score": 0.89246,
+          "query_similarity": null
+        },
+        {
+          "date": "2025-08-13",
+          "headline": "Banking stocks dip after a major scandal is revealed",
+          "synapse_similarity_score": 0.803723,
+          "query_similarity": null
+        },
+        {
+          "date": "2025-08-13",
+          "headline": "Financial services stocks rally on strong profit margins",
+          "synapse_similarity_score": 0.795866,
+          "query_similarity": null
+        },
+        {
+          "date": "2025-08-13",
+          "headline": "Quarterly report shows surprising losses for retail giants",
+          "synapse_similarity_score": 0.784753,
+          "query_similarity": null
+        }
+      ],
+      "answer_mode": "direct_qa_lookup"
+    },
+    "language": "en",
+    "backend": "transformers",
+    "model": "Qwen/Qwen2.5-7B-Instruct",
+    "cache_hit": false,
+    "cached_at": "2026-04-26T13:52:12.996725"
+  },
+  "{\"backend\": \"transformers\", \"dna_cluster_mtime\": 1777108439.4388902, \"dna_hidden_twin_mtime\": 1777108462.2559133, \"dna_home_bias_mtime\": 1777108462.2541523, \"enable_direct_qa_lookup\": true, \"enable_query_similarity\": false, \"max_alerts\": 8, \"prompt_policy_version\": \"info-first-v2\", \"qa_per_ticker_root\": \"/Users/hunglun/Library/Mobile Documents/com~apple~CloudDocs/Study/HKU_STAT/2025_Sem2/STAT8020/Project/8017Group4.1/model_output/Synthesis/finetune_all/per_ticker\", \"qwen_model\": \"Qwen/Qwen2.5-7B-Instruct\", \"similarity_threshold\": 0.7, \"synapse_topk_mtime\": 1777112623.0131218, \"synapse_topk_path\": \"/Users/hunglun/Library/Mobile Documents/com~apple~CloudDocs/Study/HKU_STAT/2025_Sem2/STAT8020/Project/8017Group4.1/model_output/synpse/news_events_run_20260425_182225/news_event_topk_matches.csv\", \"ticker\": \"0000\", \"top_alt_k\": 3, \"user_query\": \"what is the key risk for 2800 etf?\"}": {
+    "response": "You asked about 0000. The local model could not produce a full response in time, so here is a concise factual fallback: confirm the ETF's exact benchmark/index in the fund name and official KFS/prospectus. Since you asked about risk, check market volatility, concentration, and tracking-error exposure.",
+    "data_evidence": {
+      "ticker": "0000",
+      "cluster_id": null,
+      "top_3_alternatives": [],
+      "news_similarity_scores": []
+    },
+    "language": "en",
+    "backend": "transformers",
+    "model": "Qwen/Qwen2.5-7B-Instruct",
+    "cache_hit": false,
+    "cached_at": "2026-04-26T14:01:36.251503"
+  },
+  "{\"backend\": \"transformers\", \"dna_cluster_mtime\": 1777108439.4388902, \"dna_hidden_twin_mtime\": 1777108462.2559133, \"dna_home_bias_mtime\": 1777108462.2541523, \"enable_direct_qa_lookup\": true, \"enable_query_similarity\": false, \"max_alerts\": 8, \"prompt_policy_version\": \"info-first-v2\", \"qa_per_ticker_root\": \"/Users/hunglun/Library/Mobile Documents/com~apple~CloudDocs/Study/HKU_STAT/2025_Sem2/STAT8020/Project/8017Group4.1/model_output/Synthesis/finetune_all/per_ticker\", \"qwen_model\": \"Qwen/Qwen2.5-7B-Instruct\", \"similarity_threshold\": 0.7, \"synapse_topk_mtime\": 1777112623.0131218, \"synapse_topk_path\": \"/Users/hunglun/Library/Mobile Documents/com~apple~CloudDocs/Study/HKU_STAT/2025_Sem2/STAT8020/Project/8017Group4.1/model_output/synpse/news_events_run_20260425_182225/news_event_topk_matches.csv\", \"ticker\": \"2800\", \"top_alt_k\": 3, \"user_query\": \"what is the key risk\"}": {
+    "response": "You asked about 2800. The local model could not produce a full response in time, so here is a concise factual fallback: confirm the ETF's exact benchmark/index in the fund name and official KFS/prospectus. Since you asked about risk, check market volatility, concentration, and tracking-error exposure.",
+    "data_evidence": {
+      "ticker": "2800",
+      "cluster_id": null,
+      "top_3_alternatives": [],
+      "news_similarity_scores": [
+        {
+          "date": "2025-08-14",
+          "headline": "Consumer Discretionary stocks outperform as spending increases",
+          "synapse_similarity_score": 0.820211,
+          "query_similarity": null
+        },
+        {
+          "date": "2025-08-14",
+          "headline": "Quarterly report shows surprising losses for retail giants",
+          "synapse_similarity_score": 0.806925,
+          "query_similarity": null
+        },
+        {
+          "date": "2025-08-14",
+          "headline": "Energy company's dividend hike excites shareholders",
+          "synapse_similarity_score": 0.788004,
+          "query_similarity": null
+        },
+        {
+          "date": "2025-08-14",
+          "headline": "Merger talks between two banks fall through",
+          "synapse_similarity_score": 0.773815,
+          "query_similarity": null
+        },
+        {
+          "date": "2025-08-13",
+          "headline": "Real Estate sector shows signs of overheating as interest rates fall",
+          "synapse_similarity_score": 0.89246,
+          "query_similarity": null
+        },
+        {
+          "date": "2025-08-13",
+          "headline": "Banking stocks dip after a major scandal is revealed",
+          "synapse_similarity_score": 0.803723,
+          "query_similarity": null
+        },
+        {
+          "date": "2025-08-13",
+          "headline": "Financial services stocks rally on strong profit margins",
+          "synapse_similarity_score": 0.795866,
+          "query_similarity": null
+        },
+        {
+          "date": "2025-08-13",
+          "headline": "Quarterly report shows surprising losses for retail giants",
+          "synapse_similarity_score": 0.784753,
+          "query_similarity": null
+        }
+      ]
+    },
+    "language": "en",
+    "backend": "transformers",
+    "model": "Qwen/Qwen2.5-7B-Instruct",
+    "cache_hit": false,
+    "cached_at": "2026-04-26T14:04:05.444569"
+  },
+  "{\"backend\": \"transformers\", \"dna_cluster_mtime\": 1777108439.4388902, \"dna_hidden_twin_mtime\": 1777108462.2559133, \"dna_home_bias_mtime\": 1777108462.2541523, \"enable_direct_qa_lookup\": true, \"enable_query_similarity\": false, \"max_alerts\": 8, \"prompt_policy_version\": \"info-first-v2\", \"qa_per_ticker_root\": \"/Users/hunglun/Library/Mobile Documents/com~apple~CloudDocs/Study/HKU_STAT/2025_Sem2/STAT8020/Project/8017Group4.1/model_output/Synthesis/finetune_all/per_ticker\", \"qwen_model\": \"Qwen/Qwen2.5-7B-Instruct\", \"similarity_threshold\": 0.7, \"synapse_topk_mtime\": 1777112623.0131218, \"synapse_topk_path\": \"/Users/hunglun/Library/Mobile Documents/com~apple~CloudDocs/Study/HKU_STAT/2025_Sem2/STAT8020/Project/8017Group4.1/model_output/synpse/news_events_run_20260425_182225/news_event_topk_matches.csv\", \"ticker\": \"2800\", \"top_alt_k\": 3, \"user_query\": \"What are key risks?\"}": {
+    "response": "Based on fund documents, the key risks include:\n- Equity Market Risk TraHK's investments in equity securities are subject to general market risks, and the value of such investments may fluctuate due to various factors such as changes in investment sentiment, political and economic conditions and issuer-specific factors.\n- Dual counter risks The market price of Units traded in each counter may deviate significantly. The Units in the RMB counter are securities traded on SEHK in RMB.\n- Early Termination TraHK may be terminated early by the Trustee (with the prior approval of the Promoter, not to be unreasonably withheld) under certain circumstances, including, but not limited to those set out under the section entitled “TraHK – Administrative Provisions of the Trust Deed – Termination”.",
+    "data_evidence": {
+      "ticker": "2800",
+      "cluster_id": null,
+      "top_3_alternatives": [],
+      "news_similarity_scores": [],
+      "answer_mode": "direct_qa_lookup"
+    },
+    "language": "en",
+    "backend": "transformers",
+    "model": "Qwen/Qwen2.5-7B-Instruct",
+    "cache_hit": false,
+    "cached_at": "2026-04-26T14:38:23.861427"
+  },
+  "{\"backend\": \"transformers\", \"dna_cluster_mtime\": 1777108439.4388902, \"dna_hidden_twin_mtime\": 1777108462.2559133, \"dna_home_bias_mtime\": 1777108462.2541523, \"enable_direct_qa_lookup\": true, \"enable_query_similarity\": false, \"max_alerts\": 8, \"prompt_policy_version\": \"info-first-v2\", \"qa_per_ticker_root\": \"/Users/hunglun/Library/Mobile Documents/com~apple~CloudDocs/Study/HKU_STAT/2025_Sem2/STAT8020/Project/8017Group4.1/model_output/Synthesis/finetune_all/per_ticker\", \"qwen_model\": \"Qwen/Qwen2.5-7B-Instruct\", \"similarity_threshold\": 0.7, \"synapse_topk_mtime\": 1777112623.0131218, \"synapse_topk_path\": \"/Users/hunglun/Library/Mobile Documents/com~apple~CloudDocs/Study/HKU_STAT/2025_Sem2/STAT8020/Project/8017Group4.1/model_output/synpse/news_events_run_20260425_182225/news_event_topk_matches.csv\", \"ticker\": \"2800\", \"top_alt_k\": 3, \"user_query\": \"What is the investment objective?\"}": {
+    "response": "The fund aims to closely correspond to the performance of the Hang Seng Index.",
+    "data_evidence": {
+      "ticker": "2800",
+      "cluster_id": null,
+      "top_3_alternatives": [],
+      "news_similarity_scores": [],
+      "answer_mode": "direct_qa_lookup"
+    },
+    "language": "en",
+    "backend": "transformers",
+    "model": "Qwen/Qwen2.5-7B-Instruct",
+    "cache_hit": false,
+    "cached_at": "2026-04-26T14:38:54.408073"
+  },
+  "{\"backend\": \"transformers\", \"dna_cluster_mtime\": 1777108439.4388902, \"dna_hidden_twin_mtime\": 1777108462.2559133, \"dna_home_bias_mtime\": 1777108462.2541523, \"enable_direct_qa_lookup\": true, \"enable_query_similarity\": false, \"max_alerts\": 8, \"prompt_policy_version\": \"info-first-v2\", \"qa_per_ticker_root\": \"/Users/hunglun/Library/Mobile Documents/com~apple~CloudDocs/Study/HKU_STAT/2025_Sem2/STAT8020/Project/8017Group4.1/model_output/Synthesis/finetune_all/per_ticker\", \"qwen_model\": \"Qwen/Qwen2.5-7B-Instruct\", \"similarity_threshold\": 0.7, \"synapse_topk_mtime\": 1777112623.0131218, \"synapse_topk_path\": \"/Users/hunglun/Library/Mobile Documents/com~apple~CloudDocs/Study/HKU_STAT/2025_Sem2/STAT8020/Project/8017Group4.1/model_output/synpse/news_events_run_20260425_182225/news_event_topk_matches.csv\", \"ticker\": \"2800\", \"top_alt_k\": 3, \"user_query\": \"how is the past return and what is the fee\"}": {
+    "response": "Based on fund documents, ongoing charges are about 0.06% per year. Additional dealing/creation-redemption fees may also apply.",
+    "data_evidence": {
+      "ticker": "2800",
+      "cluster_id": null,
+      "top_3_alternatives": [],
+      "news_similarity_scores": [],
+      "answer_mode": "direct_qa_lookup"
+    },
+    "language": "en",
+    "backend": "transformers",
+    "model": "Qwen/Qwen2.5-7B-Instruct",
+    "cache_hit": false,
+    "cached_at": "2026-04-26T14:39:11.931570"
+  }
+}
