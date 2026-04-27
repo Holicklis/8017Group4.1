@@ -32,12 +32,39 @@ class ETFPDFProcessor:
     from PDF files into CSV format for LLM fine-tuning and vector embeddings.
     """
 
-    PROFILE_VERSION = "etf_profile_v1"
+    PROFILE_VERSION = "etf_profile_v2_kfs_focused"
     SECTION_CHAR_BUDGET = 1200
     GLOBAL_CHAR_BUDGET = 2600
     SECTION_SENTENCE_BUDGET = 16
     GLOBAL_SENTENCE_BUDGET = 32
+    RISK_SUMMARY_SENTENCE_BUDGET = 6
+    RISK_SUMMARY_CHAR_BUDGET = 650
     PROFILE_OUTPUT_RELATIVE_PATH = Path("model_output/synpse/etf_profiles.csv")
+    DOC_TYPE_WEIGHT = {"key_facts": 5, "prospectus": 2, "other": 0}
+    RISK_SECTION_HINTS = (
+        "risk factors",
+        "key risks",
+        "risk profile",
+        "investment risks",
+        "risk",
+    )
+    RISK_NOISE_PHRASES = (
+        "quick facts",
+        "stock code",
+        "trading lot size",
+        "manager:",
+        "trustee",
+        "registrar",
+        "counterparty",
+        "comply with the following provisions",
+        "the following provisions",
+        "subject to paragraphs",
+        "otc",
+        "over-the-counter",
+        "appendix",
+        "schedule",
+        "table",
+    )
 
     RISK_KEYWORDS = {
         "interest_rate": [
@@ -274,6 +301,10 @@ class ETFPDFProcessor:
             return True
         if re.search(r"\b(page|appendix|chapter)\s+\d+\b", text_lower):
             return True
+        if sum(1 for phrase in self.RISK_NOISE_PHRASES if phrase in text_lower) >= 2:
+            return True
+        if re.search(r"\([a-z]\)\s", text_lower) and text_lower.count(";") >= 2:
+            return True
         # Avoid rows that are mostly numbers/codes from PDF artifacts
         alnum = re.sub(r"\s+", "", text_lower)
         if alnum and sum(char.isdigit() for char in alnum) / len(alnum) > 0.35:
@@ -331,11 +362,40 @@ class ETFPDFProcessor:
 
     def _doc_type(self, file_path: Path) -> str:
         name = file_path.name.lower()
-        if "prospectus" in name:
-            return "prospectus"
         if "key_facts" in name or "key facts" in name or "kfs" in name:
             return "key_facts"
+        if "product_key_facts" in name or "product key facts" in name:
+            return "key_facts"
+        if "prospectus" in name:
+            return "prospectus"
         return "other"
+
+    def _contains_risk_focus(self, text: str) -> bool:
+        text_lower = text.lower()
+        if any(hint in text_lower for hint in self.RISK_SECTION_HINTS):
+            return True
+        # Common investor-facing risk language.
+        investor_risk_patterns = (
+            "subject to",
+            "may be adversely",
+            "volatility",
+            "tracking error",
+            "concentration risk",
+            "liquidity risk",
+            "currency risk",
+            "credit risk",
+            "interest rate risk",
+            "counterparty risk",
+        )
+        return any(pattern in text_lower for pattern in investor_risk_patterns)
+
+    def _normalize_summary_sentence(self, text: str) -> str:
+        text = re.sub(r"\s+", " ", text).strip(" .;,:")
+        if not text:
+            return ""
+        if len(text) > 220:
+            text = text[:220].rsplit(" ", 1)[0]
+        return text + "."
 
     def _extract_tags(self, text: str, keyword_map: Dict[str, List[str]]) -> Set[str]:
         text_lower = text.lower()
@@ -412,10 +472,14 @@ class ETFPDFProcessor:
                 continue
 
             document_type = self._doc_type(csv_file)
-            doc_weight = 2 if document_type in {"prospectus", "key_facts"} else 1
+            doc_weight = self.DOC_TYPE_WEIGHT.get(document_type, 0)
+            if doc_weight <= 0:
+                continue
             for raw_sentence in df["text"].dropna().astype(str).tolist():
                 sentence = self._clean_text_segment(raw_sentence)
                 if self._looks_like_noise(sentence):
+                    continue
+                if len(sentence) > 420:
                     continue
 
                 risk_score = self._score_sentence(sentence, self.RISK_KEYWORDS) * doc_weight
@@ -426,7 +490,7 @@ class ETFPDFProcessor:
                 all_candidate_sentences.append(sentence)
                 risk_tags |= self._extract_tags(sentence, self.RISK_KEYWORDS)
                 component_tags |= self._extract_tags(sentence, self.COMPONENT_KEYWORDS)
-                if risk_score > 0:
+                if risk_score > 0 and self._contains_risk_focus(sentence):
                     ranked_risk.append({"text": sentence, "score": risk_score})
                 if component_score > 0:
                     ranked_component.append({"text": sentence, "score": component_score})
@@ -443,8 +507,8 @@ class ETFPDFProcessor:
         )
         selected_risks = self._select_ranked_sentences(
             candidates=ranked_risk,
-            sentence_limit=self.SECTION_SENTENCE_BUDGET,
-            char_budget=self.SECTION_CHAR_BUDGET,
+            sentence_limit=self.RISK_SUMMARY_SENTENCE_BUDGET,
+            char_budget=self.RISK_SUMMARY_CHAR_BUDGET,
             seen_keys=seen_keys,
         )
 
@@ -479,7 +543,9 @@ class ETFPDFProcessor:
         )
 
         key_components = " ".join(selected_components).strip()
-        key_risks = " ".join(selected_risks).strip()
+        normalized_risk_sentences = [self._normalize_summary_sentence(s) for s in selected_risks]
+        normalized_risk_sentences = [s for s in normalized_risk_sentences if s]
+        key_risks = " ".join(normalized_risk_sentences).strip()
         profile_text_parts = [
             f"Ticker: {ticker_dir.name}.",
             f"Benchmark/Index: {benchmark or 'not clearly stated'}.",
@@ -587,8 +653,9 @@ class ETFPDFProcessor:
 
             # Combine and split into initial segments (primitive split)
             full_text = " ".join(raw_content)
-            # Use regex split to keep separators or split by common sentence ends
-            initial_segments = [s.strip() for s in re.split(r"(?<=[.!?]) +", full_text) if len(s.strip()) > 5]
+            # Split more aggressively so legal blocks and table-like dumps do not become one giant sentence.
+            split_pattern = r"(?<=[.!?;])\s+|(?<=\))\s+(?=\([a-z]\))|(?<=•)\s+"
+            initial_segments = [s.strip() for s in re.split(split_pattern, full_text) if len(s.strip()) > 5]
 
             # Apply logic to merge broken fragments
             final_sentences = self._merge_fragments(initial_segments)

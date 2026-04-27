@@ -33,6 +33,10 @@ def _is_noisy_sentence(text: str) -> bool:
         r"http://",
         r"https://",
         r"\b\d{6,}\b",  # long document ids / codes
+        r"forms an integral part of",
+        r"shall be deemed to be deleted and replaced",
+        r"under the section entitled",
+        r"with the prior approval of the promoter",
     ]
     return any(re.search(p, t) for p in noise_patterns)
 
@@ -42,6 +46,30 @@ def _compact_answer(text: str, max_chars: int) -> str:
     # Remove dangling punctuation spacing artifacts.
     text = text.replace(" ,", ",").replace(" .", ".")
     return text[:max_chars].strip()
+
+
+def _is_bad_qa_answer(answer: str, source_tag: str) -> bool:
+    a = _normalize_text(answer).lower()
+    if len(a) < 35:
+        return True
+
+    bad_patterns = [
+        r"forms an integral part of",
+        r"shall be deemed to be deleted and replaced",
+        r"under the section entitled",
+        r"with the prior approval of the promoter",
+        r"this \w+ addendum",
+        r"dated \d{1,2} [a-z]+ \d{4}",
+    ]
+    if any(re.search(p, a) for p in bad_patterns):
+        return True
+
+    # Fee-tagged answers should include fee-like content, not generic legal text.
+    if "fees_charges" in str(source_tag).lower():
+        if not re.search(r"\b(fee|fees|charge|charges|expense|ongoing)\b|費用|收費|管理費|開支", a):
+            return True
+
+    return False
 
 
 def _normalized_question_key(question: str) -> str:
@@ -134,15 +162,33 @@ class ETFQAGenerator:
         min_answer_chars: int = 35,
         max_answer_chars: int = 520,
         seed: int = 42,
+        only_key_facts: bool = False,
     ) -> None:
         self.ticker = ticker
         self.min_answer_chars = min_answer_chars
         self.max_answer_chars = max_answer_chars
         self.rng = random.Random(seed)
+        self.only_key_facts = only_key_facts
+
+    @staticmethod
+    def _is_key_facts_file(path: Path) -> bool:
+        name = path.name.lower()
+        key_tokens = [
+            "key_facts",
+            "keyfacts",
+            "product_key_facts",
+            "product key facts",
+            "kfs",
+        ]
+        return any(token in name for token in key_tokens)
 
     def _load_sentences(self, csv_dir: Path) -> pd.DataFrame:
         files = sorted(csv_dir.glob("*.csv"))
+        if self.only_key_facts:
+            files = [f for f in files if self._is_key_facts_file(f)]
         if not files:
+            if self.only_key_facts:
+                raise FileNotFoundError(f"No Key Facts CSV files found in {csv_dir}")
             raise FileNotFoundError(f"No CSV files found in {csv_dir}")
 
         frames: List[pd.DataFrame] = []
@@ -486,6 +532,8 @@ class ETFQAGenerator:
 
         # Quality gate: keep only real questions.
         deduped = [x for x in deduped if _is_question_like(x.question, x.language)]
+        # Quality gate: remove legal boilerplate / low-value answers.
+        deduped = [x for x in deduped if not _is_bad_qa_answer(x.answer, x.source_tag)]
 
         # Strong dedupe by normalized question text to avoid repeated prompts.
         # Keep the shortest non-trivial answer version per question.
@@ -531,9 +579,10 @@ def generate_finetune_qa(
     ticker: str = "02800",
     max_pairs: int = 240,
     include_zh: bool = True,
+    only_key_facts: bool = False,
 ) -> Dict[str, object]:
     output_dir.mkdir(parents=True, exist_ok=True)
-    gen = ETFQAGenerator(ticker=ticker)
+    gen = ETFQAGenerator(ticker=ticker, only_key_facts=only_key_facts)
     pairs = gen.build_qa_pairs(csv_dir=csv_dir, max_pairs=max_pairs, include_zh=include_zh)
 
     rows = [p.to_dict(idx=i + 1) for i, p in enumerate(pairs)]
@@ -567,6 +616,7 @@ def generate_finetune_qa(
         "num_zh_pairs": int((qa_df["language"] != "en").sum()) if not qa_df.empty else 0,
         "max_pairs_requested": max_pairs,
         "include_zh": include_zh,
+        "only_key_facts": only_key_facts,
         "outputs": {
             "csv": str(csv_path),
             "jsonl": str(jsonl_path),
@@ -583,6 +633,7 @@ def generate_finetune_qa_all(
     output_dir: Path,
     max_pairs: int = 240,
     include_zh: bool = True,
+    only_key_facts: bool = False,
 ) -> Dict[str, object]:
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -605,6 +656,7 @@ def generate_finetune_qa_all(
                 ticker=ticker,
                 max_pairs=max_pairs,
                 include_zh=include_zh,
+                only_key_facts=only_key_facts,
             )
             per_ticker.append(result)
 
@@ -667,6 +719,7 @@ def generate_finetune_qa_all(
         "num_en_pairs": int((combined_df["language"] == "en").sum()) if not combined_df.empty else 0,
         "num_zh_pairs": int((combined_df["language"] != "en").sum()) if not combined_df.empty else 0,
         "include_zh": include_zh,
+        "only_key_facts": only_key_facts,
         "max_pairs_per_ticker": max_pairs,
         "outputs": {
             "csv": str(combined_csv),
@@ -705,6 +758,11 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--output-dir", type=Path, required=True, help="Output folder for QA datasets")
     parser.add_argument("--ticker", type=str, default="02800")
     parser.add_argument("--max-pairs", type=int, default=240)
+    parser.add_argument(
+        "--only-key-facts",
+        action="store_true",
+        help="Use only Product Key Facts / KFS CSV files as source (skip prospectus/addendum CSVs).",
+    )
     return parser.parse_args()
 
 
@@ -718,6 +776,7 @@ if __name__ == "__main__":
             output_dir=args.output_dir,
             max_pairs=max(args.max_pairs, 20),
             include_zh=True,
+            only_key_facts=args.only_key_facts,
         )
     else:
         if args.csv_dir is None:
@@ -728,5 +787,6 @@ if __name__ == "__main__":
             ticker=args.ticker,
             max_pairs=max(args.max_pairs, 20),
             include_zh=True,
+            only_key_facts=args.only_key_facts,
         )
     print(json.dumps(result, indent=2, ensure_ascii=False))

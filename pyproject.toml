@@ -21,6 +21,7 @@ dependencies = [
     "plotly",
     "pyarrow>=24.0.0",
     "pypdf",
+    "pyproject-toml>=0.1.0",
     "requests",
     "ruff>=0.15.12",
     "scikit-learn",

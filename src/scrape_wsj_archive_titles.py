@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import calendar
 import html
+import logging
 import re
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -13,6 +14,8 @@ from typing import Iterable
 
 import pandas as pd
 import requests
+
+logger = logging.getLogger(__name__)
 
 YEARS_ARCHIVE_URL = "https://www.wsj.com/news/archive/years"
 MONTH_LINK_RE = re.compile(r"/news/archive/(\d{4})/([a-z]+)")
@@ -40,6 +43,40 @@ MONTH_NAME_TO_NUM = {
 class ArchiveMonth:
     year: int
     month: int
+
+
+def _project_root() -> Path:
+    return Path(__file__).resolve().parents[1]
+
+
+def configure_logging(level: int = logging.INFO) -> Path:
+    log_dir = _project_root() / "logs"
+    log_dir.mkdir(parents=True, exist_ok=True)
+    log_file = log_dir / "scrape_wsj_archive_titles.log"
+
+    formatter = logging.Formatter("%(asctime)s [%(levelname)s] %(name)s: %(message)s")
+    root_logger = logging.getLogger()
+    root_logger.setLevel(level)
+
+    has_file_handler = any(
+        isinstance(handler, logging.FileHandler) and Path(handler.baseFilename) == log_file
+        for handler in root_logger.handlers
+    )
+    if not has_file_handler:
+        file_handler = logging.FileHandler(log_file, encoding="utf-8")
+        file_handler.setFormatter(formatter)
+        root_logger.addHandler(file_handler)
+
+    has_stream_handler = any(
+        isinstance(handler, logging.StreamHandler) and not isinstance(handler, logging.FileHandler)
+        for handler in root_logger.handlers
+    )
+    if not has_stream_handler:
+        stream_handler = logging.StreamHandler()
+        stream_handler.setFormatter(formatter)
+        root_logger.addHandler(stream_handler)
+
+    return log_file
 
 
 def _headers() -> dict[str, str]:
@@ -121,6 +158,7 @@ def scrape_wsj_archive_titles(
     start_year: int | None = None,
     end_year: int | None = None,
 ) -> dict[str, object]:
+    logger.info("Starting WSJ archive title scrape")
     output_csv.parent.mkdir(parents=True, exist_ok=True)
 
     with requests.Session() as session:
@@ -143,7 +181,7 @@ def scrape_wsj_archive_titles(
                 statuses[status] = statuses.get(status, 0) + 1
                 all_rows.extend(rows)
                 if processed % 200 == 0:
-                    print(f"Processed {processed}/{len(dates)} days | titles collected={len(all_rows)}")
+                    logger.info("Processed %s/%s days | titles collected=%s", processed, len(dates), len(all_rows))
 
     df = pd.DataFrame(all_rows)
     if not df.empty:
@@ -157,6 +195,7 @@ def scrape_wsj_archive_titles(
         "days_scanned": int(len(dates)),
         "status_counts": statuses,
     }
+    logger.info("Scrape completed. Output rows=%s saved to %s", summary["rows"], output_csv)
     return summary
 
 
@@ -173,7 +212,8 @@ def _parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-if __name__ == "__main__":
+def main() -> None:
+    log_file = configure_logging()
     args = _parse_args()
     result = scrape_wsj_archive_titles(
         output_csv=args.output_csv,
@@ -181,4 +221,9 @@ if __name__ == "__main__":
         start_year=args.start_year,
         end_year=args.end_year,
     )
-    print(result)
+    logger.info("Run result: %s", result)
+    logger.info("Logs saved to %s", log_file)
+
+
+if __name__ == "__main__":
+    main()
