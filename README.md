@@ -155,7 +155,6 @@ Training time depends on your machine and dataset size.
 ```text
 8017Group4.1/
 ├── app/
-│   ├── chatbot_app.py
 │   └── hk_etf_intelligence_app.py
 ├── MODEL_DETAILS.md
 ├── data/
