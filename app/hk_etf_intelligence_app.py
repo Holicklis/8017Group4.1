@@ -13,6 +13,7 @@ import time
 from pathlib import Path
 from typing import Any
 
+import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
@@ -24,6 +25,7 @@ if str(PROJECT_ROOT) not in sys.path:
 from src.model.synthesis.synthesis_engine import (  # noqa: E402
     DEFAULT_LOCAL_QWEN_MODEL,
     generate_synthesis,
+    warmup_synthesis_model,
 )
 
 RAW_METADATA_COLUMNS = [
@@ -175,6 +177,26 @@ def apply_frontend_theme() -> None:
             background: rgba(8, 33, 49, 0.62);
         }
 
+        /* Gemini-like chat UX */
+        [data-testid="stChatMessage"] {
+            border-radius: 20px;
+            padding: 0.4rem 0.65rem;
+            margin-bottom: 0.55rem;
+            border: 1px solid rgba(140, 201, 228, 0.25);
+            backdrop-filter: blur(4px);
+        }
+        [data-testid="stChatMessage"] [data-testid="chatAvatarIcon-user"] {
+            border-radius: 999px;
+        }
+        [data-testid="stChatInput"] {
+            border: 1px solid rgba(140, 201, 228, 0.30);
+            border-radius: 18px;
+            background: rgba(10, 37, 54, 0.88);
+        }
+        [data-testid="stChatInput"] textarea {
+            font-size: 0.98rem;
+        }
+
         @keyframes riseIn {
             from { transform: translateY(8px); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
@@ -255,8 +277,145 @@ def _bucket_asset_class(asset_class: object) -> str:
     return "Other"
 
 
+def _looks_like_etf_subcategory(value: object) -> bool:
+    text = str(value).strip().lower()
+    if not text or text == "nan":
+        return False
+    return ("etf" in text) or ("exchange traded fund" in text)
+
+
 def _query_tokens(text: str) -> set[str]:
     return set(re.findall(r"[a-z0-9\u4e00-\u9fff]+", str(text).lower()))
+
+
+def _contains_any(text: str, keywords: list[str]) -> bool:
+    lowered = str(text).lower()
+    return any(k in lowered for k in keywords)
+
+
+def _is_recommendation_query(text: str) -> bool:
+    return _contains_any(
+        text,
+        [
+            "which etf",
+            "recommend",
+            "suggest",
+            "invest in",
+            "what etf",
+            "可什麼etf",
+            "咩etf",
+            "推薦",
+            "建議",
+            "投資",
+            "邊隻etf",
+        ],
+    )
+
+
+def _extract_query_profile(query: str) -> dict[str, Any]:
+    q = str(query).lower()
+    theme_map: dict[str, list[str]] = {
+        "oil": ["oil", "crude", "wti", "brent", "石油", "原油", "能源"],
+        "gold": ["gold", "bullion", "黃金"],
+        "china_tech": ["china tech", "chinese tech", "中國科技", "科技股", "科網", "internet", "platform"],
+        "dividend": ["dividend", "yield", "income", "派息", "股息", "收益"],
+        "bond": ["bond", "fixed income", "treasury", "債券", "債", "固定收益"],
+        "money_market": ["money market", "cash management", "貨幣市場", "現金管理"],
+    }
+    matched_themes = [theme for theme, kws in theme_map.items() if any(k in q for k in kws)]
+    return {"themes": matched_themes, "query_tokens": _query_tokens(query)}
+
+
+@st.cache_data(show_spinner=False)
+def load_risk_profile_corpus() -> pd.DataFrame:
+    profile_path = PROJECT_ROOT / "model_output" / "synpse" / "etf_profiles.csv"
+    if not profile_path.exists():
+        return pd.DataFrame()
+    try:
+        df = pd.read_csv(profile_path).copy()
+    except Exception:
+        return pd.DataFrame()
+    if "ticker" not in df.columns:
+        return pd.DataFrame()
+    df["ticker"] = df["ticker"].map(_to_hkex_code)
+    text_col = "key_risks" if "key_risks" in df.columns else "profile_text"
+    if text_col not in df.columns:
+        return pd.DataFrame()
+    df["risk_text"] = df[text_col].fillna("").astype(str).str.strip()
+    df = df[(df["ticker"] != "") & (df["ticker"] != "0000") & (df["risk_text"] != "")]
+    return df[["ticker", "risk_text"]].drop_duplicates(subset=["ticker"], keep="first").reset_index(drop=True)
+
+
+@st.cache_data(show_spinner=False)
+def load_risk_profile_details() -> pd.DataFrame:
+    profile_path = PROJECT_ROOT / "model_output" / "synpse" / "etf_profiles.csv"
+    if not profile_path.exists():
+        return pd.DataFrame()
+    try:
+        df = pd.read_csv(profile_path).copy()
+    except Exception:
+        return pd.DataFrame()
+    if "ticker" not in df.columns:
+        return pd.DataFrame()
+
+    df["ticker"] = df["ticker"].map(_to_hkex_code)
+    for col in ["benchmark_or_index", "key_risks"]:
+        if col not in df.columns:
+            df[col] = ""
+        df[col] = df[col].fillna("").astype(str).str.strip()
+    df = df[(df["ticker"] != "") & (df["ticker"] != "0000")]
+    return (
+        df[["ticker", "benchmark_or_index", "key_risks"]]
+        .drop_duplicates(subset=["ticker"], keep="first")
+        .reset_index(drop=True)
+    )
+
+
+@st.cache_data(show_spinner=False)
+def load_mappable_ticker_universe() -> set[str]:
+    """
+    Tickers that are fully mappable by local recommendation/answer pipeline.
+    Current rule: must exist in both per-ticker QA corpus and risk-profile corpus.
+    """
+    qa_root = PROJECT_ROOT / "model_output" / "Synthesis" / "finetune_all" / "per_ticker"
+    qa_tickers: set[str] = set()
+    if qa_root.exists():
+        for path in qa_root.glob("*_finetune_qa.csv"):
+            stem = path.name.replace("_finetune_qa.csv", "")
+            code = _to_hkex_code(stem)
+            if code and code != "0000":
+                qa_tickers.add(code)
+
+    profile = load_risk_profile_corpus()
+    profile_tickers = set(profile["ticker"].astype(str).tolist()) if not profile.empty else set()
+
+    if qa_tickers and profile_tickers:
+        return qa_tickers & profile_tickers
+    if qa_tickers:
+        return qa_tickers
+    return profile_tickers
+
+
+@st.cache_resource(show_spinner=False)
+def _load_sentence_encoder(model_name: str = "sentence-transformers/all-MiniLM-L6-v2"):
+    from sentence_transformers import SentenceTransformer
+
+    return SentenceTransformer(model_name)
+
+
+@st.cache_data(show_spinner=False)
+def _build_risk_profile_embeddings(model_name: str = "sentence-transformers/all-MiniLM-L6-v2") -> tuple[list[str], np.ndarray]:
+    corpus = load_risk_profile_corpus()
+    if corpus.empty:
+        return [], np.empty((0, 0), dtype=np.float32)
+    encoder = _load_sentence_encoder(model_name)
+    vectors = encoder.encode(
+        corpus["risk_text"].tolist(),
+        normalize_embeddings=True,
+        show_progress_bar=False,
+    )
+    embeddings = np.asarray(vectors, dtype=np.float32)
+    return corpus["ticker"].tolist(), embeddings
 
 
 @st.cache_data(show_spinner=False)
@@ -275,6 +434,133 @@ def load_latest_synapse_topk() -> pd.DataFrame:
     return df
 
 
+def rank_etf_candidates_hybrid(
+    query: str,
+    metadata: pd.DataFrame,
+    tickers: list[str],
+    max_items: int = 5,
+) -> list[dict[str, Any]]:
+    if not query or not tickers:
+        return []
+
+    mappable = load_mappable_ticker_universe()
+    allowed = set(tickers)
+    if mappable:
+        allowed = allowed & mappable
+    if not allowed:
+        return []
+    profile = _extract_query_profile(query)
+    q_tokens = set(profile.get("query_tokens", set()))
+    themes = profile.get("themes", [])
+
+    # 1) Metadata/theme score (primary)
+    base_rows: list[dict[str, Any]] = []
+    if not metadata.empty and "Ticker" in metadata.columns:
+        cols = [
+            c
+            for c in [
+                "Stock short name*",
+                "Asset class*",
+                "Geographic focus*",
+                "Investment focus*",
+                "Product sub-category*",
+                "Thematic",
+            ]
+            if c in metadata.columns
+        ]
+        work = metadata[metadata["Ticker"].isin(allowed)].copy()
+        for _, row in work.iterrows():
+            code = _to_hkex_code(row.get("Ticker", ""))
+            if not code or code == "0000":
+                continue
+            bundle = " ".join(str(row.get(c, "")) for c in cols).lower()
+            r_tokens = _query_tokens(bundle)
+            token_overlap = len(q_tokens & r_tokens) / max(len(q_tokens), 1) if q_tokens else 0.0
+            theme_hits = 0.0
+            if themes:
+                if "oil" in themes and _contains_any(bundle, ["oil", "crude", "wti", "brent", "石油", "原油", "能源"]):
+                    theme_hits += 1.0
+                if "gold" in themes and _contains_any(bundle, ["gold", "bullion", "黃金"]):
+                    theme_hits += 1.0
+                if "china_tech" in themes and _contains_any(bundle, ["china", "chinese", "tech", "科技", "科網", "internet"]):
+                    theme_hits += 1.0
+                if "dividend" in themes and _contains_any(bundle, ["dividend", "yield", "income", "派息", "股息"]):
+                    theme_hits += 1.0
+                if "bond" in themes and _contains_any(bundle, ["bond", "fixed income", "treasury", "債"]):
+                    theme_hits += 1.0
+                if "money_market" in themes and _contains_any(bundle, ["money market", "cash", "貨幣市場"]):
+                    theme_hits += 1.0
+            theme_score = theme_hits / max(len(themes), 1) if themes else 0.0
+            base_rows.append(
+                {
+                    "ticker": code,
+                    "name": str(row.get("Stock short name*", "")).strip() or "Unknown ETF",
+                    "metadata_score": float(token_overlap),
+                    "theme_score": float(theme_score),
+                }
+            )
+
+    # 2) Risk-profile cosine signal
+    risk_candidates = infer_ticker_candidates_from_risk_profile(query, tickers, max_items=30)
+    risk_map = {code: float(score) for code, score in risk_candidates}
+    max_risk = max(risk_map.values()) if risk_map else 1.0
+
+    # 3) Optional news auxiliary (small weight only)
+    news_map: dict[str, float] = {}
+    syn = load_latest_synapse_topk()
+    if not syn.empty:
+        work = syn[syn["predicted_ticker"].isin(allowed)].copy()
+        text_cols = [c for c in ["Headline", "Market_Event", "query_text", "Sector", "Source"] if c in work.columns]
+        if not work.empty and text_cols and q_tokens:
+            def _aux_score(row: pd.Series) -> float:
+                content = " ".join(str(row.get(c, "")) for c in text_cols)
+                overlap = len(q_tokens & _query_tokens(content)) / max(len(q_tokens), 1)
+                sim = float(pd.to_numeric(row.get("final_score", 0.0), errors="coerce") or 0.0)
+                return 0.6 * overlap + 0.4 * sim
+
+            work["aux_score"] = work.apply(_aux_score, axis=1)
+            grouped = work.groupby("predicted_ticker", as_index=False)["aux_score"].max()
+            news_map = {str(r["predicted_ticker"]): float(r["aux_score"]) for _, r in grouped.iterrows()}
+
+    # Merge universe from metadata + risk candidates.
+    scored: dict[str, dict[str, Any]] = {r["ticker"]: r for r in base_rows}
+    for code in risk_map:
+        if code not in scored:
+            scored[code] = {"ticker": code, "name": "Unknown ETF", "metadata_score": 0.0, "theme_score": 0.0}
+
+    # Fill missing names from metadata lookup.
+    if not metadata.empty and "Ticker" in metadata.columns and "Stock short name*" in metadata.columns:
+        name_map = metadata[["Ticker", "Stock short name*"]].drop_duplicates().set_index("Ticker")["Stock short name*"].to_dict()
+        for code, item in scored.items():
+            if item.get("name") == "Unknown ETF":
+                item["name"] = str(name_map.get(code, "Unknown ETF"))
+
+    ranked: list[dict[str, Any]] = []
+    for code, item in scored.items():
+        risk_score = risk_map.get(code, 0.0)
+        risk_norm = risk_score / max(max_risk, 1e-6)
+        aux_score = news_map.get(code, 0.0)
+        final_score = (
+            0.40 * float(item.get("theme_score", 0.0))
+            + 0.30 * float(item.get("metadata_score", 0.0))
+            + 0.25 * float(risk_norm)
+            + 0.05 * float(aux_score)
+        )
+        ranked.append(
+            {
+                "ticker": code,
+                "name": item.get("name", "Unknown ETF"),
+                "final_score": float(final_score),
+                "theme_score": float(item.get("theme_score", 0.0)),
+                "metadata_score": float(item.get("metadata_score", 0.0)),
+                "risk_score": float(risk_score),
+                "news_aux_score": float(aux_score),
+            }
+        )
+    ranked.sort(key=lambda x: (-x["final_score"], x["ticker"]))
+    return ranked[:max_items]
+
+
 def infer_ticker_from_query(query: str, metadata: pd.DataFrame, tickers: list[str]) -> tuple[str | None, str]:
     """
     Infer a likely ETF ticker from free-form user query.
@@ -285,11 +571,17 @@ def infer_ticker_from_query(query: str, metadata: pd.DataFrame, tickers: list[st
     """
     if not query:
         return None, "No query provided."
+    mappable = load_mappable_ticker_universe()
+    eligible = set(tickers)
+    if mappable:
+        eligible = eligible & mappable
+    if not eligible:
+        return None, "No mappable ETF universe available."
 
     # 1) explicit ticker in query
     ticker_hits = re.findall(r"\b\d{4}\b", query)
     for hit in ticker_hits:
-        if hit in tickers and hit != "0000":
+        if hit in eligible and hit != "0000":
             return hit, f"Detected explicit ticker `{hit}` from your question."
 
     # 2) metadata name match
@@ -299,44 +591,220 @@ def infer_ticker_from_query(query: str, metadata: pd.DataFrame, tickers: list[st
         candidates["name_lower"] = candidates["Stock short name*"].astype(str).str.lower()
 
         contains = candidates[candidates["name_lower"].apply(lambda name: name in q or q in name)]
-        contains = contains[contains["Ticker"].isin(tickers)]
+        contains = contains[contains["Ticker"].isin(eligible)]
         contains = contains[contains["Ticker"] != "0000"]
         if not contains.empty:
             best = str(contains.iloc[0]["Ticker"])
             name = str(contains.iloc[0]["Stock short name*"])
             return best, f"Matched ETF name `{name}` -> ticker `{best}`."
 
-    # 3) synapse/news-based fallback inference
-    syn = load_latest_synapse_topk()
-    if not syn.empty:
-        q_tokens = _query_tokens(query)
-        if q_tokens:
-            text_cols = [c for c in ["Headline", "Market_Event", "query_text", "Sector", "Source"] if c in syn.columns]
-            if text_cols:
-                work = syn.copy()
-                work = work[work["predicted_ticker"].isin(tickers)]
-                if not work.empty:
-                    def _row_score(row: pd.Series) -> float:
-                        content = " ".join(str(row.get(c, "")) for c in text_cols)
-                        r_tokens = _query_tokens(content)
-                        if not r_tokens:
-                            return 0.0
-                        overlap = len(q_tokens & r_tokens) / max(len(q_tokens), 1)
-                        sim = float(pd.to_numeric(row.get("final_score", 0.0), errors="coerce") or 0.0)
-                        return 0.65 * overlap + 0.35 * sim
-
-                    work["infer_score"] = work.apply(_row_score, axis=1)
-                    top = (
-                        work.sort_values("infer_score", ascending=False)
-                        .groupby("predicted_ticker", as_index=False)["infer_score"]
-                        .max()
-                        .sort_values("infer_score", ascending=False)
-                    )
-                    if not top.empty and float(top.iloc[0]["infer_score"]) >= 0.12:
-                        inferred = str(top.iloc[0]["predicted_ticker"])
-                        return inferred, f"Inferred from Synapse/news similarity -> `{inferred}`."
+    # 3) hybrid inference for free-form/no-ticker queries
+    ranked = rank_etf_candidates_hybrid(query, metadata, tickers, max_items=3)
+    if ranked:
+        top_score = float(ranked[0]["final_score"])
+        second_score = float(ranked[1]["final_score"]) if len(ranked) > 1 else 0.0
+        if top_score >= 0.20 and (top_score - second_score) >= 0.03:
+            top_code = str(ranked[0]["ticker"])
+            return top_code, f"Inferred from hybrid profile matching -> `{top_code}`."
 
     return None, "No confident ticker match found from query text."
+
+
+def infer_ticker_candidates_from_risk_profile(
+    query: str,
+    tickers: list[str],
+    max_items: int = 3,
+) -> list[tuple[str, float]]:
+    """
+    Return ranked ticker candidates from risk-profile cosine similarity.
+    """
+    if not query or not tickers:
+        return []
+    ticker_list, embeddings = _build_risk_profile_embeddings()
+    if not ticker_list or embeddings.size == 0:
+        return []
+
+    allowed = set(tickers)
+    keep_idx = [i for i, code in enumerate(ticker_list) if code in allowed]
+    if not keep_idx:
+        return []
+
+    filtered_tickers = [ticker_list[i] for i in keep_idx]
+    filtered_embeddings = embeddings[keep_idx]
+
+    try:
+        encoder = _load_sentence_encoder()
+        query_vec = encoder.encode([query], normalize_embeddings=True, show_progress_bar=False)[0]
+        query_vec = np.asarray(query_vec, dtype=np.float32)
+        scores = filtered_embeddings @ query_vec
+    except Exception:
+        # Fallback lexical matching if embedding model unavailable at runtime.
+        corpus = load_risk_profile_corpus()
+        corpus = corpus[corpus["ticker"].isin(allowed)].copy()
+        if corpus.empty:
+            return []
+        q_tokens = _query_tokens(query)
+        if not q_tokens:
+            return []
+        corpus["score"] = corpus["risk_text"].map(
+            lambda txt: len(q_tokens & _query_tokens(txt)) / max(len(q_tokens), 1)
+        )
+        ranked = corpus.sort_values("score", ascending=False).head(max_items)
+        return [(str(row["ticker"]), float(row["score"])) for _, row in ranked.iterrows() if float(row["score"]) > 0]
+
+    order = np.argsort(-scores)
+    out: list[tuple[str, float]] = []
+    seen: set[str] = set()
+    for idx in order:
+        code = filtered_tickers[int(idx)]
+        if code in seen:
+            continue
+        seen.add(code)
+        score = float(scores[int(idx)])
+        if score <= 0:
+            continue
+        out.append((code, score))
+        if len(out) >= max_items:
+            break
+    return out
+
+
+def build_etf_high_level_summary(ticker: str, metadata: pd.DataFrame) -> str:
+    """
+    Build a concise ETF profile summary for chatbot context display.
+    """
+    code = _to_hkex_code(ticker)
+    if not code:
+        return "ETF profile summary unavailable."
+
+    if metadata.empty or "Ticker" not in metadata.columns:
+        return f"ETF `{code}` selected. Name unavailable from current metadata."
+
+    match = metadata.loc[metadata["Ticker"] == code]
+    if match.empty:
+        return f"ETF `{code}` selected. Name unavailable from current metadata."
+
+    row = match.iloc[0]
+    etf_name = str(row.get("Stock short name*", "")).strip() or "Unknown ETF"
+    asset_class = str(row.get("Asset class*", "")).strip() or "-"
+    geo_focus = str(row.get("Geographic focus*", "")).strip() or "-"
+    invest_focus = str(row.get("Investment focus*", "")).strip() or "-"
+    mgmt_style = str(row.get("Management Style", "")).strip() or "-"
+
+    return (
+        f"**ETF Name:** {etf_name}  \n"
+        f"**Ticker:** `{code}`  \n"
+        f"**Profile:** {asset_class} | {geo_focus} | {invest_focus} | {mgmt_style}"
+    )
+
+
+def build_recommendation_message(query: str, ranked: list[dict[str, Any]], metadata: pd.DataFrame) -> str:
+    if not ranked:
+        return (
+            "I couldn't confidently recommend a single ETF from your query. "
+            "Please add a bit more preference (e.g., region, volatility tolerance, or asset class)."
+        )
+
+    primary = ranked[0]
+    primary_ticker = str(primary["ticker"])
+    primary_name = str(primary.get("name", "Unknown ETF"))
+    summary = build_etf_high_level_summary(primary_ticker, metadata)
+
+    benchmark = "-"
+    key_risks = "-"
+    details = load_risk_profile_details()
+    if not details.empty:
+        hit = details.loc[details["ticker"] == primary_ticker]
+        if not hit.empty:
+            bench_txt = str(hit.iloc[0].get("benchmark_or_index", "")).strip()
+            risk_txt = str(hit.iloc[0].get("key_risks", "")).strip()
+            if bench_txt and bench_txt.lower() != "nan":
+                benchmark = bench_txt
+            if risk_txt and risk_txt.lower() != "nan":
+                # Keep recommendation response concise and scannable.
+                key_risks = re.sub(r"\s+", " ", risk_txt)
+                if len(key_risks) > 200:
+                    key_risks = key_risks[:200].rsplit(" ", 1)[0] + "..."
+
+    fee_text = "-"
+    if not metadata.empty and "Ticker" in metadata.columns:
+        fee_row = metadata.loc[metadata["Ticker"] == primary_ticker]
+        if not fee_row.empty and "Ongoing Charges Figures (%)*" in fee_row.columns:
+            fee_val = pd.to_numeric(fee_row.iloc[0]["Ongoing Charges Figures (%)*"], errors="coerce")
+            if pd.notna(fee_val):
+                fee_text = f"{float(fee_val):.2f}%"
+
+    alt = [f"`{x['ticker']}` {x.get('name', 'Unknown ETF')}" for x in ranked[1:4]]
+    alt_line = ", ".join(alt) if alt else "No close alternatives found."
+
+    return (
+        f"`{primary_ticker}` ({primary_name}) is the best match for your request.\n\n"
+        "It provides exposure aligned with the theme in your query. "
+        "Here is a high-level ETF summary:\n\n"
+        f"{summary}\n\n"
+        f"**Benchmark:** {benchmark}\n\n"
+        f"**Key risks:** {key_risks}\n\n"
+        f"**Ongoing fee (OCF):** {fee_text}\n\n"
+        f"You could also explore: {alt_line}."
+    )
+
+
+def suggest_etf_candidates_from_query(
+    query: str,
+    metadata: pd.DataFrame,
+    max_items: int = 5,
+) -> list[tuple[str, str]]:
+    """
+    Return a small ranked ETF candidate list from metadata text overlap.
+    """
+    if not query or metadata.empty or "Ticker" not in metadata.columns:
+        return []
+
+    work = metadata.copy()
+    text_cols = [
+        col
+        for col in [
+            "Stock short name*",
+            "Asset class*",
+            "Geographic focus*",
+            "Investment focus*",
+            "Product sub-category*",
+            "Thematic",
+        ]
+        if col in work.columns
+    ]
+    if not text_cols:
+        return []
+
+    q_tokens = _query_tokens(query)
+    if not q_tokens:
+        return []
+
+    def _cand_score(row: pd.Series) -> float:
+        content = " ".join(str(row.get(c, "")) for c in text_cols)
+        r_tokens = _query_tokens(content)
+        if not r_tokens:
+            return 0.0
+        return len(q_tokens & r_tokens) / max(len(q_tokens), 1)
+
+    work["query_match_score"] = work.apply(_cand_score, axis=1)
+    ranked = (
+        work[work["query_match_score"] > 0]
+        .sort_values(["query_match_score", "Ticker"], ascending=[False, True])
+        .drop_duplicates(subset=["Ticker"], keep="first")
+        .head(max_items)
+    )
+    if ranked.empty:
+        return []
+
+    out: list[tuple[str, str]] = []
+    for _, row in ranked.iterrows():
+        code = _to_hkex_code(row.get("Ticker", ""))
+        if not code or code == "0000":
+            continue
+        name = str(row.get("Stock short name*", "")).strip() or "Unknown ETF"
+        out.append((code, name))
+    return out
 
 
 def _is_timeout_fallback_response(text: str) -> bool:
@@ -345,6 +813,157 @@ def _is_timeout_fallback_response(text: str) -> bool:
         "could not produce a full response in time" in body
         or "concise factual fallback" in body
     )
+
+
+def _fix_invalid_ticker_claim(response: str, resolved_ticker: str | None, tickers: list[str], metadata: pd.DataFrame) -> str:
+    """
+    Guardrail against model hallucination: claiming a valid resolved ticker is invalid.
+    """
+    text = str(response or "").strip()
+    code = _to_hkex_code(resolved_ticker or "")
+    if not text or not code:
+        return text
+
+    lower = text.lower()
+    is_known_ticker = code in set(tickers)
+    if not is_known_ticker:
+        return text
+
+    invalid_patterns = [
+        "does not correspond to any known etf",
+        "does not correspond to a known etf",
+        "does not correspond to an existing etf",
+        "is not a known etf",
+        "not an existing etf",
+        "isn't an etf",
+        "is not in our database",
+        "isn't in our database",
+        "there isn't an etf with the ticker",
+        "there is no etf with the ticker",
+        "not found in our database",
+        "couldn't find any information about the etf with the ticker",
+        "could not find any information about the etf with the ticker",
+        "might be incorrect",
+        "not listed in the hong kong market",
+        "confirm if",
+        "correct ticker",
+        "check the ticker again",
+        "provide more details",
+        "would you like more",
+        "並不是一個現有的etf",
+        "不是一個現有的etf",
+        "未能找到對應的etf",
+    ]
+    # Also sanitize obvious truncation tails even when invalid-ETF phrase is absent.
+    if "would you like more" in lower:
+        text = re.sub(r"(?is)\bwould you like more.*$", "", text).strip()
+        lower = text.lower()
+
+    if not any(p in lower for p in invalid_patterns):
+        return text
+
+    # Replace hallucinated invalid-ticker claim with a concise correction.
+    corrected_prefix = f"Using ticker `{code}` as the active ETF context.\n\n"
+
+    # Drop common "ticker not found/invalid/please confirm ticker" sentence variants.
+    cleaned = text
+    sentence_patterns = [
+        r'[^.\n]*there isn[\'’]t an etf with the ticker[^.\n]*[.\n]?',
+        r'[^.\n]*there is no etf with the ticker[^.\n]*[.\n]?',
+        r'[^.\n]*does not correspond to any known etf[^.\n]*[.\n]?',
+        r'[^.\n]*does not correspond to an existing etf[^.\n]*[.\n]?',
+        r'[^.\n]*isn[\'’]t in our database[^.\n]*[.\n]?',
+        r'[^.\n]*is not in our database[^.\n]*[.\n]?',
+        r'[^.\n]*couldn[\'’]t find any information about the etf with the ticker[^.\n]*[.\n]?',
+        r'[^.\n]*could not find any information about the etf with the ticker[^.\n]*[.\n]?',
+        r'[^.\n]*might be incorrect[^.\n]*[.\n]?',
+        r'[^.\n]*not listed in the hong kong market[^.\n]*[.\n]?',
+        r'[^.\n]*confirm if[^.\n]*correct ticker[^.\n]*[.\n]?',
+        r'[^.\n]*check the ticker again[^.\n]*[.\n]?',
+        r'[^.\n]*provide more details[^.\n]*[.\n]?',
+        r'(?is)\bwould you like more.*$',
+        r'[^。\n]*不是一個現有的etf[^。\n]*[。\n]?',
+        r'[^。\n]*並不是一個現有的etf[^。\n]*[。\n]?',
+        r'[^。\n]*未能找到對應的etf[^。\n]*[。\n]?',
+    ]
+    for pattern in sentence_patterns:
+        cleaned = re.sub(pattern, "", cleaned, flags=re.IGNORECASE).strip()
+
+    # Last-resort scrub: if any remaining sentence still says ticker is invalid,
+    # remove those lines completely when ticker is already known/resolved.
+    lines = [ln.strip() for ln in cleaned.splitlines() if ln.strip()]
+    safe_lines: list[str] = []
+    for ln in lines:
+        low = ln.lower()
+        if (
+            "ticker" in low
+            and (
+                "does not correspond" in low
+                or "not listed" in low
+                or "incorrect" in low
+                or "not in our database" in low
+                or "isn't an etf" in low
+            )
+        ):
+            continue
+        safe_lines.append(ln)
+    cleaned = "\n".join(safe_lines).strip()
+
+    if not cleaned:
+        return corrected_prefix + "I can continue with risk, benchmark, fee, and alternatives for this ETF."
+    return corrected_prefix + cleaned
+
+
+def _sanitize_resolved_ticker_response(
+    response: str,
+    resolved_ticker: str | None,
+    tickers: list[str],
+    metadata: pd.DataFrame,
+) -> str:
+    """
+    Sanitize hallucinated/low-quality fragments after ticker is already resolved.
+    """
+    text = str(response or "").strip()
+    code = _to_hkex_code(resolved_ticker or "")
+    if not text or not code or code not in set(tickers):
+        return text
+
+    # If local mapping artifacts exist, remove contradictory "insufficient local data" claims.
+    has_profile = False
+    details = load_risk_profile_details()
+    if not details.empty and "ticker" in details.columns:
+        has_profile = code in set(details["ticker"].astype(str).tolist())
+    mappable = load_mappable_ticker_universe()
+    has_mapping = (not mappable) or (code in mappable) or has_profile
+    if has_mapping:
+        insuff_patterns = [
+            r"[^。\n]*目前本地資料不足以確認細節[^。\n]*[。\n]?",
+            r"[^.\n]*local data is currently insufficient[^.\n]*[.\n]?",
+            r"[^.\n]*insufficient local data[^.\n]*[.\n]?",
+        ]
+        for p in insuff_patterns:
+            text = re.sub(p, "", text, flags=re.IGNORECASE).strip()
+
+    # Trim common truncated tail fragments.
+    text = re.sub(r"(?is)(\(|（)\s*key\s*$", "", text).strip()
+    text = re.sub(r"(?is)\bwould you like more.*$", "", text).strip()
+    return text
+
+
+def _warmup_model_once(backend: str, model_name: str, use_response_cache: bool) -> None:
+    warm_key = f"{backend}:{model_name}:{int(use_response_cache)}"
+    warmed = st.session_state.get("model_warmup_keys", set())
+    if warm_key in warmed:
+        return
+
+    with st.spinner("Initializing chatbot model..."):
+        warmup_synthesis_model(
+            backend=backend,
+            qwen_model=model_name,
+            enable_response_cache=use_response_cache,
+        )
+    warmed.add(warm_key)
+    st.session_state.model_warmup_keys = warmed
 
 
 @st.cache_data(show_spinner=False)
@@ -391,6 +1010,13 @@ def load_metadata() -> tuple[pd.DataFrame, str]:
     if "Stock code*" in meta.columns:
         meta["Stock code*"] = meta["Ticker"]
 
+    # Keep ETF rows only when product subtype information is available.
+    # This prevents plain equities from leaking into selector options.
+    if "Product sub-category*" in meta.columns:
+        etf_mask = meta["Product sub-category*"].apply(_looks_like_etf_subcategory)
+        if etf_mask.any():
+            meta = meta[etf_mask].copy()
+
     return meta.drop_duplicates(subset=["Ticker"], keep="last"), str(metadata_path)
 
 
@@ -398,15 +1024,17 @@ def load_metadata() -> tuple[pd.DataFrame, str]:
 def discover_tickers() -> list[str]:
     tickers: set[str] = set()
     metadata, _ = load_metadata()
+    allowed_tickers: set[str] = set()
     if not metadata.empty and "Ticker" in metadata.columns:
-        tickers.update(metadata["Ticker"].dropna().astype(str).tolist())
+        allowed_tickers = set(metadata["Ticker"].dropna().astype(str).tolist())
+        tickers.update(allowed_tickers)
 
     ohlcv_root = _default_etf_root() / "ohlcv"
     if ohlcv_root.exists():
         for folder in ohlcv_root.iterdir():
             if folder.is_dir():
                 code = _to_hkex_code(folder.name)
-                if code:
+                if code and (not allowed_tickers or code in allowed_tickers):
                     tickers.add(code)
 
     return sorted(t for t in tickers if t != "0000")
@@ -815,7 +1443,7 @@ def render_chatbot(tickers: list[str], metadata: pd.DataFrame) -> None:
             chat_selected_ticker = None
             st.caption("Ticker will be inferred from your question when possible.")
 
-    adv1, adv2, adv3 = st.columns([1, 2, 1.2])
+    adv1, adv2, adv3, adv4 = st.columns([1, 2, 1.1, 1.1])
     with adv1:
         backend = st.selectbox("Backend", options=["transformers", "ollama", "vllm"], key="chat_backend")
     with adv2:
@@ -827,6 +1455,13 @@ def render_chatbot(tickers: list[str], metadata: pd.DataFrame) -> None:
             help="Turn on for faster repeat answers. Turn off for fresh generation (recommended).",
             key="chat_use_response_cache",
         )
+    with adv4:
+        auto_init_model = st.checkbox(
+            "Auto-init model",
+            value=True,
+            help="Warm up model once so first message doesn't hang.",
+            key="chat_auto_init_model",
+        )
 
     if chat_mode == "Select ETF":
         st.caption(f"Chat context ticker: `{chat_selected_ticker}`")
@@ -835,6 +1470,27 @@ def render_chatbot(tickers: list[str], metadata: pd.DataFrame) -> None:
 
     if "chat_messages" not in st.session_state:
         st.session_state.chat_messages = []
+    if "model_warmup_keys" not in st.session_state:
+        st.session_state.model_warmup_keys = set()
+
+    ctrl1, ctrl2 = st.columns([1.1, 3.0])
+    with ctrl1:
+        if st.button("Clear chat", key="clear_chat_btn"):
+            st.session_state.chat_messages = []
+            st.rerun()
+    with ctrl2:
+        st.caption("Tip: Clear chat to start a fresh conversation context.")
+
+    if auto_init_model and backend == "transformers":
+        try:
+            _warmup_model_once(
+                backend=backend,
+                model_name=model_name,
+                use_response_cache=use_response_cache,
+            )
+            st.caption("Model warm-up completed.")
+        except Exception as exc:
+            st.warning(f"Model warm-up failed: {exc}")
 
     for msg in st.session_state.chat_messages:
         with st.chat_message(msg["role"]):
@@ -858,17 +1514,63 @@ def render_chatbot(tickers: list[str], metadata: pd.DataFrame) -> None:
             resolved_ticker = chat_selected_ticker
             resolution_note = None
             if chat_mode != "Select ETF":
+                if _is_recommendation_query(prompt):
+                    ranked = rank_etf_candidates_hybrid(prompt, metadata, tickers, max_items=5)
+                    if ranked:
+                        top = ranked[0]
+                        top2 = ranked[1] if len(ranked) > 1 else None
+                        margin = float(top["final_score"]) - float(top2["final_score"]) if top2 else float(top["final_score"])
+                        st.caption(
+                            "Auto-detect recommendation mode. "
+                            f"Top match `{top['ticker']}` score={float(top['final_score']):.2f}, margin={margin:.2f}"
+                        )
+                    response = build_recommendation_message(prompt, ranked, metadata)
+                    evidence = {
+                        "mode": "auto_recommendation",
+                        "ranked_candidates": ranked[:3],
+                    }
+                    st.markdown(response)
+                    assistant_msg = {"role": "assistant", "content": response, "evidence": evidence}
+                    st.session_state.chat_messages.append(assistant_msg)
+                    return
+
                 resolved_ticker, resolution_note = infer_ticker_from_query(prompt, metadata, tickers)
                 if resolved_ticker is None:
-                    fallback_ticker = st.session_state.get("selected_ticker", tickers[0])
-                    resolved_ticker = fallback_ticker
-                    st.warning(
-                        "Could not infer a confident ticker from this query. "
-                        f"Using fallback context ticker `{fallback_ticker}`. "
-                        "Tip: include a 4-digit ticker (e.g. 2800) for better accuracy."
-                    )
-                    resolution_note = "Inference failed; fallback context ticker used."
+                    ranked = rank_etf_candidates_hybrid(prompt, metadata, tickers, max_items=3)
+                    if ranked and float(ranked[0]["final_score"]) >= 0.16:
+                        resolved_ticker = str(ranked[0]["ticker"])
+                        candidate_text = ", ".join(
+                            [f"`{x['ticker']}` ({float(x['final_score']):.2f})" for x in ranked]
+                        )
+                        st.caption(
+                            "Auto-detected with moderate confidence from hybrid matching. "
+                            f"Candidates: {candidate_text}"
+                        )
+                        resolution_note = "Auto-detected from hybrid matching (moderate confidence)."
+                    else:
+                        candidates = suggest_etf_candidates_from_query(prompt, metadata, max_items=3)
+                        st.warning(
+                            "Could not infer a confident single ticker from this query. "
+                            "Tip: include a 4-digit ticker (e.g. 2800) or switch to Select ETF mode."
+                        )
+                        if candidates:
+                            lines = "\n".join([f"- `{code}` {name}" for code, name in candidates])
+                            response = (
+                                "I couldn't confidently map your query to one ETF. "
+                                "You can pick one of these likely candidates and ask again:\n"
+                                f"{lines}"
+                            )
+                        else:
+                            response = (
+                                "I couldn't confidently map your query to one ETF. "
+                                "Please include a 4-digit ticker or use Select ETF mode."
+                            )
+                        st.markdown(response)
+                        assistant_msg = {"role": "assistant", "content": response, "evidence": {"ticker_inference": "no_confident_match"}}
+                        st.session_state.chat_messages.append(assistant_msg)
+                        return
                 st.caption(f"Resolved ticker: `{resolved_ticker}`. {resolution_note}")
+                st.markdown(build_etf_high_level_summary(resolved_ticker, metadata))
 
             result = generate_synthesis(
                 ticker=resolved_ticker,
@@ -894,10 +1596,16 @@ def render_chatbot(tickers: list[str], metadata: pd.DataFrame) -> None:
                     result = retry_result
 
             response = str(result.get("response", "")).strip() or "No response returned by synthesis engine."
+            response = _fix_invalid_ticker_claim(response, resolved_ticker, tickers, metadata)
+            response = _sanitize_resolved_ticker_response(response, resolved_ticker, tickers, metadata)
             evidence = result.get("data_evidence", {})
+            if isinstance(evidence, dict):
+                evidence["ticker_claim_guardrail"] = "applied"
             elapsed = time.perf_counter() - start
             st.markdown(response)
             st.caption(f"Response time: {elapsed:.2f}s")
+            if evidence.get("answer_mode"):
+                st.caption(f"Answer mode: `{evidence.get('answer_mode')}`")
             if evidence:
                 with st.expander("Evidence"):
                     st.json(evidence)
@@ -931,6 +1639,19 @@ def main() -> None:
 
     if "selected_ticker" not in st.session_state and tickers:
         st.session_state.selected_ticker = tickers[0]
+    if "model_warmup_keys" not in st.session_state:
+        st.session_state.model_warmup_keys = set()
+
+    # Warm up default chatbot model at app launch to reduce first-message hanging.
+    try:
+        _warmup_model_once(
+            backend="transformers",
+            model_name=DEFAULT_LOCAL_QWEN_MODEL,
+            use_response_cache=False,
+        )
+    except Exception:
+        # Non-fatal: chatbot tab will still attempt warmup again when opened.
+        pass
 
     if metadata.empty:
         st.warning(

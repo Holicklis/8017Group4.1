@@ -2,12 +2,45 @@ from __future__ import annotations
 
 import argparse
 import json
+import logging
 from datetime import datetime
 from pathlib import Path
 
 from evaluate_benchmark import _default_output_path, run_side_by_side_evaluation
 from run_news_events import run_news_events
 from semantic_clustering_stability import run_stability_assessment
+
+logger = logging.getLogger(__name__)
+
+
+def configure_logging(level: int = logging.INFO) -> Path:
+    log_dir = _project_root() / "logs"
+    log_dir.mkdir(parents=True, exist_ok=True)
+    log_file = log_dir / "synapse_run.log"
+
+    formatter = logging.Formatter("%(asctime)s [%(levelname)s] %(name)s: %(message)s")
+    root_logger = logging.getLogger()
+    root_logger.setLevel(level)
+
+    has_file_handler = any(
+        isinstance(handler, logging.FileHandler) and Path(handler.baseFilename) == log_file
+        for handler in root_logger.handlers
+    )
+    if not has_file_handler:
+        file_handler = logging.FileHandler(log_file, encoding="utf-8")
+        file_handler.setFormatter(formatter)
+        root_logger.addHandler(file_handler)
+
+    has_stream_handler = any(
+        isinstance(handler, logging.StreamHandler) and not isinstance(handler, logging.FileHandler)
+        for handler in root_logger.handlers
+    )
+    if not has_stream_handler:
+        stream_handler = logging.StreamHandler()
+        stream_handler.setFormatter(formatter)
+        root_logger.addHandler(stream_handler)
+
+    return log_file
 
 
 def _project_root() -> Path:
@@ -30,6 +63,7 @@ def run_synapse_pipeline(
     run_stability: bool = True,
     news_csv: Path | None = None,
 ) -> dict[str, object]:
+    logger.info("Starting Synapse pipeline run")
     output_root = _default_synapse_output_root()
     output_root.mkdir(parents=True, exist_ok=True)
 
@@ -47,6 +81,7 @@ def run_synapse_pipeline(
     benchmark_path = _default_output_path()
     benchmark_path.write_text(json.dumps(benchmark, indent=2), encoding="utf-8")
     results["benchmark_json"] = str(benchmark_path)
+    logger.info("Benchmark output saved to %s", benchmark_path)
 
     # Step 2: batch news run
     if run_news:
@@ -65,6 +100,7 @@ def run_synapse_pipeline(
             results["news_run"] = news_result
         else:
             results["news_run"] = {"skipped": f"Input csv not found: {input_csv}"}
+            logger.warning("Skipping news run; input CSV not found at %s", input_csv)
 
     # Step 3: stability run
     if run_stability:
@@ -85,6 +121,7 @@ def run_synapse_pipeline(
     summary_path = output_root / "synapse_run_summary.json"
     summary_path.write_text(json.dumps(results, indent=2), encoding="utf-8")
     results["summary_json"] = str(summary_path)
+    logger.info("Synapse pipeline completed. Summary saved to %s", summary_path)
     return results
 
 
@@ -99,7 +136,8 @@ def _parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-if __name__ == "__main__":
+def main() -> None:
+    log_file = configure_logging()
     args = _parse_args()
     output = run_synapse_pipeline(
         preset=args.preset,
@@ -109,4 +147,10 @@ if __name__ == "__main__":
         run_stability=not args.skip_stability,
         news_csv=args.news_csv,
     )
-    print(json.dumps(output, indent=2))
+    logger.info("Run completed. summary_json=%s", output.get("summary_json"))
+    logger.debug("Run payload: %s", json.dumps(output, indent=2))
+    logger.info("Logs saved to %s", log_file)
+
+
+if __name__ == "__main__":
+    main()

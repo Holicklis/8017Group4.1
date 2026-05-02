@@ -21,3 +21,6 @@ kagoo token
 # Local session notes
 SESSION_HANDOFF.md
 notes
+
+# Course instruction documents (keep locally; do not commit)
+STAT 8017B Project Instruction*.docx

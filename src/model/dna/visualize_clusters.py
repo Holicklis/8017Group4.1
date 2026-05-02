@@ -42,6 +42,14 @@ class ClusterVisualizer:
         plotly_html: bool = True,
         show_point_text: bool = False,
         show_cluster_centroids: bool = True,
+        fig_width: float = 16.0,
+        fig_height: float = 9.0,
+        title_fontsize: int = 20,
+        axis_label_fontsize: int = 20,
+        tick_fontsize: int = 14,
+        legend_fontsize: int = 14,
+        marker_size: float = 95.0,
+        output_dpi: int = 300,
     ) -> None:
         model_output_root = _default_model_output_root()
         self.input_path = input_path or model_output_root / "cluster_views" / "cluster_perspectives.parquet"
@@ -50,6 +58,14 @@ class ClusterVisualizer:
         self.plotly_html = plotly_html
         self.show_point_text = show_point_text
         self.show_cluster_centroids = show_cluster_centroids
+        self.fig_width = fig_width
+        self.fig_height = fig_height
+        self.title_fontsize = title_fontsize
+        self.axis_label_fontsize = axis_label_fontsize
+        self.tick_fontsize = tick_fontsize
+        self.legend_fontsize = legend_fontsize
+        self.marker_size = marker_size
+        self.output_dpi = output_dpi
 
     def _load_clusters(self) -> pd.DataFrame:
         logger.info("Loading cluster perspectives: %s", self.input_path)
@@ -61,7 +77,7 @@ class ClusterVisualizer:
         return df
 
     def _plot_scatter(self, df: pd.DataFrame, perspective: str, x_col: str, y_col: str) -> None:
-        fig, ax = plt.subplots(figsize=(10, 7))
+        fig, ax = plt.subplots(figsize=(self.fig_width, self.fig_height))
         clusters = sorted(df["cluster_id"].dropna().unique().tolist())
         cmap = plt.get_cmap("tab10")
 
@@ -70,10 +86,12 @@ class ClusterVisualizer:
             ax.scatter(
                 chunk[x_col],
                 chunk[y_col],
-                s=35,
-                alpha=0.85,
+                s=self.marker_size,
+                alpha=0.9,
                 color=cmap(idx % 10),
                 label=f"Cluster {int(cluster_id)}",
+                edgecolors="white",
+                linewidths=0.5,
             )
 
             if self.annotate_points and "ticker" in chunk.columns:
@@ -85,18 +103,31 @@ class ClusterVisualizer:
                         alpha=0.8,
                     )
 
-        ax.set_title(f"Financial DNA Cluster Map - {perspective} ({x_col.upper()} vs {y_col.upper()})")
-        ax.set_xlabel(x_col.upper())
-        ax.set_ylabel(y_col.upper())
-        ax.grid(True, alpha=0.2)
-        ax.legend(loc="best", fontsize=8)
+        if perspective == "return_risk_profile":
+            plot_title = "Risk / Return Cluster"
+        elif perspective == "macro_sensitivity":
+            plot_title = "Macro Sensitivity Cluster"
+        else:
+            plot_title = perspective
+        ax.set_title(plot_title, fontsize=self.title_fontsize, pad=12, weight="bold")
+        ax.set_xlabel(x_col.upper(), fontsize=self.axis_label_fontsize, labelpad=10)
+        ax.set_ylabel(y_col.upper(), fontsize=self.axis_label_fontsize, labelpad=10)
+        ax.tick_params(axis="both", labelsize=self.tick_fontsize)
+        ax.grid(True, alpha=0.25)
+        ax.legend(
+            loc="best",
+            fontsize=self.legend_fontsize,
+            title="Clusters",
+            title_fontsize=max(self.legend_fontsize, self.tick_fontsize),
+            frameon=True,
+        )
         fig.tight_layout()
 
         if x_col == "pc1" and y_col == "pc2":
             output_path = self.output_dir / f"{perspective}_pc_scatter.png"
         else:
             output_path = self.output_dir / f"{perspective}_{x_col}_{y_col}_scatter.png"
-        fig.savefig(output_path, dpi=180)
+        fig.savefig(output_path, dpi=self.output_dpi)
         plt.close(fig)
         logger.info("Saved scatter plot: %s", output_path)
 
@@ -241,6 +272,14 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Disable centroid markers and labels",
     )
+    parser.add_argument("--fig-width", type=float, default=16.0, help="Matplotlib figure width in inches")
+    parser.add_argument("--fig-height", type=float, default=9.0, help="Matplotlib figure height in inches")
+    parser.add_argument("--title-fontsize", type=int, default=20, help="Plot title font size")
+    parser.add_argument("--axis-label-fontsize", type=int, default=20, help="Axis label font size")
+    parser.add_argument("--tick-fontsize", type=int, default=14, help="Axis tick font size")
+    parser.add_argument("--legend-fontsize", type=int, default=14, help="Legend font size")
+    parser.add_argument("--marker-size", type=float, default=95.0, help="Scatter marker size")
+    parser.add_argument("--output-dpi", type=int, default=300, help="PNG output DPI")
     return parser.parse_args()
 
 
@@ -254,6 +293,14 @@ def main() -> None:
         plotly_html=not args.no_plotly_html,
         show_point_text=args.show_point_text,
         show_cluster_centroids=not args.no_cluster_centroids,
+        fig_width=args.fig_width,
+        fig_height=args.fig_height,
+        title_fontsize=args.title_fontsize,
+        axis_label_fontsize=args.axis_label_fontsize,
+        tick_fontsize=args.tick_fontsize,
+        legend_fontsize=args.legend_fontsize,
+        marker_size=args.marker_size,
+        output_dpi=args.output_dpi,
     )
     visualizer.run()
 

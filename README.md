@@ -134,24 +134,10 @@ uv run python src/model/synapse/run.py
 uv run python src/model/synthesis/run.py
 ```
 
-### 📝 QnA generation and fine-tuning
-```bash
-# generate QnA for one ticker
-uv run python src/model/synthesis/generate_finetune_qa.py \
-  --csv-dir "data/etf/documentation/02800/csv" \
-  --output-dir "model_output/Synthesis/finetune" \
-  --ticker 02800 \
-  --max-pairs 240
+### 🎓 Fine-tune Qwen (optional)
 
-# generate QnA for all tickers
-uv run python src/model/synthesis/generate_finetune_qa.py \
-  --all-csv \
-  --documentation-root "data/etf/documentation" \
-  --output-dir "model_output/Synthesis/finetune_all" \
-  --max-pairs 40
-```
+LoRA checkpoints under `model_output/Synthesis/finetuned/` are large and stay **off GitHub**. Prepare your ChatML dataset at **`model_output/Synthesis/finetune_all/all_tickers_finetune_qa_chatml.jsonl`**, then fine-tune **only** as follows:
 
-Fine-tune Qwen:
 ```bash
 uv run python src/model/synthesis/finetune_qwen.py \
   --dataset-path "model_output/Synthesis/finetune_all/all_tickers_finetune_qa_chatml.jsonl" \
@@ -163,11 +149,12 @@ uv run python src/model/synthesis/finetune_qwen.py \
   --max-length 1024
 ```
 
+Training time depends on your machine and dataset size.
+
 ## 🗂️ Project Structure
 ```text
 8017Group4.1/
 ├── app/
-│   ├── chatbot_app.py
 │   └── hk_etf_intelligence_app.py
 ├── MODEL_DETAILS.md
 ├── data/

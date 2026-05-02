@@ -2,10 +2,11 @@ from __future__ import annotations
 
 import argparse
 import json
+import logging
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -22,8 +23,44 @@ if str(_CURRENT_DIR) not in sys.path:
 
 from model import ETFNewsEngine, _default_paths
 
+logger = logging.getLogger(__name__)
 
-def _load_financial_sentiment_model(model_name: str):
+
+def _project_root() -> Path:
+    return Path(__file__).resolve().parents[3]
+
+
+def configure_logging(level: int = logging.INFO) -> Path:
+    log_dir = _project_root() / "logs"
+    log_dir.mkdir(parents=True, exist_ok=True)
+    log_file = log_dir / "synapse_run_news_events.log"
+
+    formatter = logging.Formatter("%(asctime)s [%(levelname)s] %(name)s: %(message)s")
+    root_logger = logging.getLogger()
+    root_logger.setLevel(level)
+
+    has_file_handler = any(
+        isinstance(handler, logging.FileHandler) and Path(handler.baseFilename) == log_file
+        for handler in root_logger.handlers
+    )
+    if not has_file_handler:
+        file_handler = logging.FileHandler(log_file, encoding="utf-8")
+        file_handler.setFormatter(formatter)
+        root_logger.addHandler(file_handler)
+
+    has_stream_handler = any(
+        isinstance(handler, logging.StreamHandler) and not isinstance(handler, logging.FileHandler)
+        for handler in root_logger.handlers
+    )
+    if not has_stream_handler:
+        stream_handler = logging.StreamHandler()
+        stream_handler.setFormatter(formatter)
+        root_logger.addHandler(stream_handler)
+
+    return log_file
+
+
+def _load_financial_sentiment_model(model_name: str) -> Any:
     return pipeline(
         "text-classification",
         model=model_name,
@@ -179,6 +216,7 @@ def run_news_events(
     sentiment_model_name: str,
     sentiment_weight: float,
 ) -> Dict[str, object]:
+    logger.info("Loading news events from %s", input_csv)
     paths = _default_paths()
     run_dir = _prepare_output_dir(output_dir)
     df_news = pd.read_csv(input_csv)
@@ -193,6 +231,7 @@ def run_news_events(
     sentiment_input = (
         df_news[text_col].fillna("").astype(str).str.strip().where(lambda s: s.str.len() > 0, df_news["query_text"])
     )
+    logger.info("Running sentiment model '%s' on %s records", sentiment_model_name, len(df_news))
     sentiment_model = _load_financial_sentiment_model(sentiment_model_name)
     sentiment_raw = sentiment_model(
         sentiment_input.tolist(),
@@ -207,6 +246,7 @@ def run_news_events(
     df_news["sentiment_confidence"] = sentiment_conf
     df_news["sentiment_score"] = sentiment_numeric
 
+    logger.info("Initializing ETFNewsEngine with preset=%s corpus_mode=%s", preset, corpus_mode)
     engine = ETFNewsEngine(
         **paths,
         preset=preset,
@@ -283,6 +323,7 @@ def run_news_events(
     summary_path = run_dir / "run_summary.json"
     summary_path.write_text(json.dumps(summary, indent=2), encoding="utf-8")
     summary["summary_json"] = str(summary_path)
+    logger.info("News event run completed. Summary saved to %s", summary_path)
     return summary
 
 
@@ -304,7 +345,8 @@ def _parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-if __name__ == "__main__":
+def main() -> None:
+    log_file = configure_logging()
     args = _parse_args()
     result = run_news_events(
         input_csv=args.input_csv,
@@ -316,4 +358,10 @@ if __name__ == "__main__":
         sentiment_model_name=args.sentiment_model,
         sentiment_weight=max(args.sentiment_weight, 0.0),
     )
-    print(json.dumps(result, indent=2))
+    logger.info("Run completed. summary_json=%s", result.get("summary_json"))
+    logger.debug("Run payload: %s", json.dumps(result, indent=2))
+    logger.info("Logs saved to %s", log_file)
+
+
+if __name__ == "__main__":
+    main()
