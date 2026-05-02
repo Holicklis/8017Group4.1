@@ -1,84 +1,89 @@
-# HK ETF Intelligence Platform
+# 🇭🇰 HK ETF Intelligence Platform
 
-Evidence-driven ETF analytics and AI-style explanations for Hong Kong ETFs: clustering and advisory signals (**Financial DNA**), semantic links between disclosures and news (**Synapse**), and an optional advisor-style chat layer (**Financial Synthesis**). A **Streamlit** app ties screening, exploration, and chat into one UI.
-
----
-
-## Table of contents
-
-1. [Overview](#overview)
-2. [What is in Git vs what you must produce locally](#what-is-in-git-vs-what-you-must-produce-locally)
-3. [Requirements](#requirements)
-4. [Clone and install](#clone-and-install)
-5. [Data you need](#data-you-need)
-6. [Fine-tune locally (size limits)](#fine-tune-locally-size-limits)
-7. [Run the app](#run-the-app)
-8. [Pipeline commands](#pipeline-commands)
-9. [Project layout](#project-layout)
-10. [Troubleshooting](#troubleshooting)
-11. [Tech stack](#tech-stack)
-12. [Disclaimer](#disclaimer)
+Evidence-driven ETF analytics and AI-style explanations for Hong Kong ETFs: clustering and advisory signals (**Financial DNA**), semantic links between disclosures and news (**Synapse**), and an advisor-style chat layer (**Financial Synthesis**). A **Streamlit** app ties screening, exploration, and chat into one UI.
 
 ---
 
-## Overview
+## 📑 Table of contents
+
+1. [📋 Overview](#overview)
+2. [☁️ What’s on GitHub vs your machine](#whats-on-github-vs-your-machine)
+3. [✅ Requirements](#requirements)
+4. [🚀 Clone and install](#clone-and-install)
+5. [📂 Data and Synapse caches](#data-and-synapse-caches)
+6. [🎓 Fine-tune LoRA (optional)](#fine-tune-lora-optional)
+7. [▶️ Run the app](#run-the-app)
+8. [🛠️ Pipeline commands](#pipeline-commands)
+9. [🗂️ Project layout](#project-layout)
+10. [❓ Troubleshooting](#troubleshooting)
+11. [🧰 Tech stack](#tech-stack)
+12. [🎓 Academic context](#academic-context)
+13. [⚠️ Disclaimer](#disclaimer)
+
+---
+
+## 📋 Overview
+
+This project helps investors explore HK ETFs with three connected intelligence modules:
 
 | Module | Role |
 |--------|------|
-| **Financial DNA** | Feature engineering, PCA + K-Means clustering, advisory outputs (e.g. home-bias and “hidden twin” candidates). |
-| **Synapse** | ETF text profiles from prospectuses/key facts, embeddings, and similarity to news/events. |
-| **Financial Synthesis** | Combines DNA + Synapse into readable answers with an evidence block; can use local Transformers, **Ollama**, or **vLLM**. |
+| 🧬 **Financial DNA** | Feature engineering, PCA + K-Means clustering, advisory outputs (home-bias and “hidden twin” candidates). |
+| 🔗 **Synapse** | ETF text profiles from prospectuses/key facts, **`corpus_embeddings*.pt`** caches, and similarity to news/events. |
+| ✨ **Financial Synthesis** | Combines DNA + Synapse into readable answers with evidence; backends: **Transformers**, **Ollama**, or **vLLM**. |
 
-Deeper theory and file-level references: **`MODEL_DETAILS.md`** (repository root).
-
----
-
-## What is in Git vs what you must produce locally
-
-| Artifact | In this repo? | Notes |
-|----------|----------------|--------|
-| Source code, `pyproject.toml`, app | Yes | — |
-| **`data/`** (OHLCV, holdings, PDFs/CSVs, exports) | **No** (large; not committed) | Place files locally under `data/etf/…` (see [Data you need](#data-you-need)). |
-| **`corpus_embeddings*.pt`** (Synapse caches) | **No** | Ignored; rebuilt when you run Synapse. |
-| **Full fine-tune checkpoints** (LoRA, optimizer states, multi-GB dirs under `model_output/Synthesis/finetuned/…`) | **No** | **You must fine-tune locally** — see [Fine-tune locally](#fine-tune-locally-size-limits). |
-| Smaller binaries tracked as **Git LFS** | Maybe (`*.pt`, `*.safetensors`, `*.joblib` per `.gitattributes`) | After clone: `git lfs install` and `git lfs pull`. [GitHub LFS has storage and bandwidth limits](https://docs.github.com/en/repositories/working-with-files/managing-large-files/about-git-large-file-storage). |
-
-**Takeaway:** cloning the repo gives you code and (if present via LFS) *some* weights. **Project-scale fine-tunes and embeddings are expected to be produced on your machine**, not downloaded fully from GitHub.
+📖 **Deeper technical write-up:** `MODEL_DETAILS.md` (repo root).
 
 ---
 
-## Requirements
+## ☁️ What’s on GitHub vs your machine
 
-- **Python 3.10+** (see `pyproject.toml`).
-- **[uv](https://docs.astral.sh/uv/)** for dependencies: `uv sync` from the repo root.
-- **Disk:** several GB for data; **much more** if you fine-tune a 7B-class model (checkpoints, cache).
-- **GPU:** strongly recommended for local **Transformers** chat and for **LoRA fine-tuning**; CPU may work for DNA/Synapse-only workflows or small models.
-- **Git LFS:** required only if the repo tracks LFS objects you need; install once (`brew install git-lfs` on macOS), then `git lfs install`, and after each clone `git lfs pull`.
+**Remote repo (GitHub)** ships **source code**, **`pyproject.toml`**, and the **Streamlit app** — not multi‑gigabyte datasets or Synapse tensor caches.
+
+**On your laptop / lab machine** you normally keep (like our maintainers):
+
+| ✅ You typically have locally | 💡 Role |
+|-------------------------------|--------|
+| 📂 **`data/`** | HKEX exports, OHLCV, holdings, documentation PDFs/CSVs — needed for pipelines and the app. |
+| 🧠 **`corpus_embeddings*.pt`** + **`model_output/synpse/`** | Synapse caches and profiles — built after PDF/text + embedding runs; **not** the chat LLM weights. |
+| 📊 **`model_output/dna/`**, **`model_output/synpse/news_events_run_*`** | DNA + Synapse outputs for evidence in synthesis. |
+
+**🚫 The only big artifact we do *not* keep in Git (and you must train if you want it):**
+
+| Missing from Git (by design) | Why |
+|------------------------------|-----|
+| 🧪 **`model_output/Synthesis/finetuned/…`** (LoRA adapters, **optimizer states**, **multi‑GB** trainer checkpoints) | Too large for GitHub; **custom Qwen/LoRA** is optional — see [Fine-tune LoRA (optional)](#fine-tune-lora-optional). |
+
+> 💡 **TL;DR:** If you already have **`data/`** and **Synapse `corpus_embeddings*.pt`**, you’re in good shape for DNA + Synapse + the default chat (base Qwen or Ollama/vLLM). The **only** “extra” is **training your own LoRA** into `model_output/Synthesis/finetuned/…` if you want project-specific fine-tunes.
 
 ---
 
-## Clone and install
+## ✅ Requirements
+
+- **Python 3.10+** — see `pyproject.toml`
+- **[uv](https://docs.astral.sh/uv/)** — `uv sync` from the repo root
+- **Disk** — several GB for `data/` and `model_output/`; **much more** if you train a 7B LoRA (checkpoints, cache)
+- **GPU** — 🎯 strongly recommended for local **Transformers** chat and **LoRA**; CPU can work for parts of DNA/Synapse
+
+---
+
+## 🚀 Clone and install
 
 ```bash
 git clone git@github.com:Holicklis/8017Group4.1.git
 cd 8017Group4.1
 
-# Optional: fetch Git LFS binaries if your clone uses them
-git lfs install
-git lfs pull
+# install uv if needed
+curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# Install Python dependencies
-curl -LsSf https://astral.sh/uv/install.sh | sh   # if uv is not installed
 uv sync
 ```
 
 ---
 
-## Data you need
+## 📂 Data and Synapse caches
 
-The app and pipelines expect data under **`data/etf/`** (the code can fall back to **`data/ETF/`** if you already use that layout).
-
-**Minimum for a full Streamlit experience** (from existing README paths):
+### Minimum paths for a full Streamlit experience
 
 - `data/etf/summary/ETP_Data_Export.xlsx`
 - `data/etf/ohlcv/<ticker>/ohlcv.parquet`
@@ -88,45 +93,39 @@ The app and pipelines expect data under **`data/etf/`** (the code can fall back 
 - `model_output/dna/advisory/hidden_twin_candidates.parquet`
 - `model_output/synpse/news_events_run_*/news_event_topk_matches.csv`
 
-Populate **`data/`** using your course or team instructions (e.g. HKEX exports, Kaggle bundles, or your own ingestion). Run the [pipelines](#pipeline-commands) to regenerate **`model_output/`** where needed.
+### Synapse embeds (`corpus_embeddings*.pt`)
+
+These are **local cache files** produced when you run the Synapse side (profiles + sentence embeddings). They sit under paths such as `src/model/...` or `model_output/synpse/cache/` depending on your run — **keep them on disk**; they are **not** the same as a **fine-tuned Qwen** in `Synthesis/finetuned/`.
+
+> 💡 If your tree uses **`data/ETF/`** instead of **`data/etf/`**, the app can fall back automatically.
 
 ---
 
-## Fine-tune locally (size limits)
+## 🎓 Fine-tune LoRA (optional)
 
-**Why local fine-tuning?**
+**Why this folder might be “missing”:** GitHub is not meant to store **multi‑GB** LoRA runs (`optimizer.pt`, many checkpoints). Everything under **`model_output/Synthesis/finetuned/`** is **trained locally** (or on a cloud GPU) when you want **custom** weights.
 
-- **GitHub blocks regular Git blobs over 100 MB.** Optimizer and full checkpoint folders are often hundreds of MB each.
-- **Git LFS** is meant for large files but has **account storage and bandwidth quotas**; shipping multi–gigabyte fine-tune runs is usually impractical for a course repo.
-- Therefore **LoRA / Qwen fine-tune artifacts under `model_output/Synthesis/finetuned/` are not treated as something everyone downloads from Git.** You **generate them on your machine** when you need that workflow.
+**Ways to train / obtain a LoRA run**
 
-**Recommended workflow**
-
-1. Ensure prospectus/key-facts CSVs exist, e.g. `data/etf/documentation/<ticker>/csv` (see `MODEL_DETAILS.md`).
-2. **Build QnA / ChatML data:**
-   - One ticker example:
-
-     ```bash
-     uv run python src/model/synthesis/generate_finetune_qa.py \
-       --csv-dir "data/etf/documentation/02800/csv" \
-       --output-dir "model_output/Synthesis/finetune" \
-       --ticker 02800 \
-       --max-pairs 240
-     ```
-
-   - All tickers (adjust paths as needed):
-
-     ```bash
-     uv run python src/model/synthesis/generate_finetune_qa.py \
-       --all-csv \
-       --documentation-root "data/etf/documentation" \
-       --output-dir "model_output/Synthesis/finetune_all" \
-       --max-pairs 40
-     ```
-
-3. **Fine-tune** (example; tune hyperparameters for your GPU RAM):
+1. **🏠 Recommended — this repo’s script**  
+   Generate ChatML data, then fine-tune Qwen with LoRA:
 
    ```bash
+   # 1) QnA for one ticker (example)
+   uv run python src/model/synthesis/generate_finetune_qa.py \
+     --csv-dir "data/etf/documentation/02800/csv" \
+     --output-dir "model_output/Synthesis/finetune" \
+     --ticker 02800 \
+     --max-pairs 240
+
+   # 2) QnA for all tickers (adjust paths)
+   uv run python src/model/synthesis/generate_finetune_qa.py \
+     --all-csv \
+     --documentation-root "data/etf/documentation" \
+     --output-dir "model_output/Synthesis/finetune_all" \
+     --max-pairs 40
+
+   # 3) LoRA fine-tune (tune batch size / steps for your GPU RAM)
    uv run python src/model/synthesis/finetune_qwen.py \
      --dataset-path "model_output/Synthesis/finetune_all/all_tickers_finetune_qa_chatml.jsonl" \
      --output-dir "model_output/Synthesis/finetuned/qwen2.5_7b_lora_full" \
@@ -137,40 +136,42 @@ Populate **`data/`** using your course or team instructions (e.g. HKEX exports, 
      --max-length 1024
    ```
 
-4. Point the app or synthesis code at your **local** adapter/checkpoint directory if your integration expects a path under `model_output/Synthesis/finetuned/…`.
+2. **☁️ Cloud GPU** — if your laptop is too small, run the same commands on **Google Colab**, **Kaggle Notebooks**, **Lambda / RunPod / vast.ai**, etc.: clone repo, upload `data/` + generated JSONL, run `finetune_qwen.py`, download **`model_output/Synthesis/finetuned/`** zip back to your machine.
 
-**If you do not fine-tune:** use the chatbot with **`ollama`** or **`vllm`** and a model you host yourself, or **`transformers`** with a smaller/public checkpoint — you still get DNA + Synapse from locally generated `model_output/` without a custom LoRA.
+3. **🔧 Other trainers** — any workflow that produces **Hugging Face–compatible LoRA** for `Qwen2.5-7B-Instruct` can work in principle; you’d still point outputs under `model_output/Synthesis/finetuned/…` for consistency. (The Streamlit **`transformers`** path loads **base** models by default — wiring **Peft** adapters into chat would need a small code change if you want live LoRA inference.)
+
+**If you skip LoRA:** use the chatbot with **`ollama`** or **`vllm`**, or **`transformers`** + **`Qwen/Qwen2.5-7B-Instruct`** — you still get DNA + Synapse evidence from your local **`model_output/`**.
 
 ---
 
-## Run the app
+## ▶️ Run the app
 
 ```bash
 uv run streamlit run app/hk_etf_intelligence_app.py
 ```
 
-### Tabs (short)
+### 🗂️ Tabs
 
 | Tab | Depends on |
-|-----|----------------|
-| **1W Winners/Losers** | OHLCV parquet files |
-| **ETF Screener** | `ETP_Data_Export.xlsx` |
-| **ETF Explorer** | OHLCV + top holdings |
-| **AI Chatbot** | Synthesis backend + optional DNA/Synapse artifacts for evidence |
+|-----|------------|
+| 📈 **1W Winners/Losers** | OHLCV parquet files |
+| 🔍 **ETF Screener** | `ETP_Data_Export.xlsx` |
+| 🗺️ **ETF Explorer** | OHLCV + top holdings |
+| 🤖 **AI Chatbot** | Synthesis backend + DNA/Synapse artifacts for evidence |
 
-### Chatbot backends
+### 🔌 Chatbot backends
 
 | Backend | When to use |
 |---------|-------------|
-| **`transformers`** | In-process local model; first response pays model load cost. |
-| **`ollama`** | Requires Ollama at `http://localhost:11434`. |
-| **`vllm`** | Requires vLLM HTTP API (default expectation `http://localhost:8000`). |
+| **`transformers`** | In-process local model; first reply pays load time. |
+| **`ollama`** | Local Ollama at `http://localhost:11434` |
+| **`vllm`** | vLLM HTTP API (e.g. `http://localhost:8000`) |
 
 ---
 
-## Pipeline commands
+## 🛠️ Pipeline commands
 
-### Core ETF pipeline
+### 🧬 Core ETF pipeline
 
 ```bash
 uv run python src/etf_pipeline.py
@@ -186,7 +187,7 @@ uv run python src/etf_pipeline.py --summary-file "data/etf/summary/ETP_Data_Expo
 uv run python src/etf_pipeline.py --no-headless
 ```
 
-### Financial DNA
+### 🧬 Financial DNA
 
 ```bash
 uv run python src/model/dna/data_engine.py
@@ -201,14 +202,14 @@ All DNA steps:
 uv run python src/model/dna/run.py
 ```
 
-### Data fetchers (examples)
+### 📡 Data fetchers
 
 ```bash
 uv run python src/data_ingestion/provider/yfinance/etf_market_data_fetcher.py
 uv run python src/data_ingestion/provider/yfinance/etf_top_holdings_data_fetcher.py
 ```
 
-### Synapse
+### 🔗 Synapse
 
 ```bash
 uv run python src/text_extraction/pdf_text_extractor.py
@@ -216,13 +217,13 @@ uv run python src/model/synapse/model.py --query "Fed pause supports duration-se
 uv run python src/model/synapse/run.py
 ```
 
-### Synthesis (no fine-tune)
+### ✨ Synthesis (CLI)
 
 ```bash
 uv run python src/model/synthesis/run.py
 ```
 
-Quick check:
+Quick test:
 
 ```bash
 uv run python src/model/synthesis/run.py --ticker 2800 --query "What are key risks?"
@@ -230,27 +231,27 @@ uv run python src/model/synthesis/run.py --ticker 2800 --query "What are key ris
 
 ---
 
-## Project layout
+## 🗂️ Project layout
 
 ```text
 8017Group4.1/
 ├── app/
-│   └── hk_etf_intelligence_app.py      # Streamlit UI
-├── MODEL_DETAILS.md                     # Technical deep dive
+│   └── hk_etf_intelligence_app.py     # 🖥️ Streamlit UI
+├── MODEL_DETAILS.md
 ├── README.md
 ├── pyproject.toml
-├── data/                                # not in Git — you provide (see above)
+├── data/                               # 📂 local ETF data (not on GitHub)
 │   └── etf/
 │       ├── summary/
 │       ├── ohlcv/
 │       ├── holdings/top10/
 │       └── documentation/<ticker>/{pdf,csv}/
-├── model_output/                        # generated locally (DNA, Synapse, Synthesis)
+├── model_output/                       # 🔧 generated locally
 │   ├── dna/
-│   ├── synpse/
+│   ├── synpse/                         # + corpus_embeddings caches
 │   └── Synthesis/
-│       ├── finetune_all/                # generated QnA JSONL
-│       └── finetuned/                   # local LoRA / checkpoints (not from GitHub)
+│       ├── finetune_all/               # QnA / ChatML from scripts
+│       └── finetuned/                  # 🧪 optional LoRA output (train locally)
 └── src/
     ├── etf_pipeline.py
     ├── data_ingestion/provider/
@@ -263,35 +264,35 @@ uv run python src/model/synthesis/run.py --ticker 2800 --query "What are key ris
 
 ---
 
-## Troubleshooting
+## ❓ Troubleshooting
 
-| Issue | What to check |
-|-------|----------------|
-| Tabs empty or errors about missing files | Paths under `data/etf/…` and `model_output/…`; run pipelines to create DNA/Synapse outputs. |
-| **`data/ETF` vs `data/etf`** | The app tries both; align your folder names if something still fails. |
-| Chatbot slow on first message (`transformers`) | Normal: model loads once per process; later messages are faster. |
-| **`ollama` / `vllm` errors** | Services must be running on the expected host/port. |
-| Synapse / similarity odd results | Regenerate profiles and **`corpus_embeddings*.pt`** by running the Synapse pipeline locally. |
-| Push to GitHub rejected for large files | Do not commit `data/`, huge checkpoints, or `corpus_embeddings*.pt`; use **Git LFS** only for allowed patterns in `.gitattributes` and stay within [LFS quotas](https://docs.github.com/en/repositories/working-with-files/managing-large-files/about-git-large-file-storage). |
+| 😕 Issue | ✅ What to check |
+|----------|------------------|
+| Tabs empty / missing file errors | `data/etf/…` and `model_output/…` paths; run pipelines. |
+| **`data/ETF` vs `data/etf`** | App tries both; align names if something still fails. |
+| Chatbot slow on first message (`transformers`) | Normal — model loads once; later replies are faster. |
+| **`ollama` / `vllm` errors** | Services running on expected host/port. |
+| Synapse looks off | Re-run Synapse pipeline; refresh **`corpus_embeddings*.pt`** / profiles. |
+| Git push rejected — file too large | Don’t commit **`data/`**, **`corpus_embeddings*.pt`**, or **`model_output/Synthesis/finetuned/`** — keep them local or share via team storage / releases. |
 
 ---
 
-## Tech stack
+## 🧰 Tech stack
 
 - Python 3.10+
-- pandas, numpy, scikit-learn  
-- sentence-transformers, transformers, torch  
-- Streamlit, Plotly  
-- yfinance  
+- pandas, numpy, scikit-learn
+- sentence-transformers, transformers, torch
+- Streamlit, Plotly
+- yfinance
 
 ---
 
-## Academic context
+## 🎓 Academic context
 
 This project was developed in an HKU academic setting for ETF diversification research and investor-facing explainability.
 
 ---
 
-## Disclaimer
+## ⚠️ Disclaimer
 
 This repository is for **academic and research purposes only**. It is **not** investment advice and not a recommendation to buy or sell any security.
