@@ -2,6 +2,9 @@
 data/
 
 # Model/build outputs: large weights use Git LFS (see .gitattributes)
+# Embeddings are regenerated locally — do not commit or push
+**/corpus_embeddings*.pt
+
 # Do not commit raw logs
 logs/
 
