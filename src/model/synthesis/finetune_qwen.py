@@ -1,3 +1,5 @@
+"""Fine-tune Qwen with LoRA on ETF ChatML JSONL — expect on the order of ~10 hours on an Apple M2 Pro with 32 GB (dataset size and flags affect runtime)."""
+
 from __future__ import annotations
 
 import argparse
