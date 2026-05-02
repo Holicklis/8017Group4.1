@@ -79,6 +79,30 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 uv sync
 ```
 
+### 🔧 Git: always run commands **inside** `8017Group4.1/`
+
+The **repository root** is this folder — the one that contains the hidden **`.git`** directory (`…/8017Group4.1`).  
+If your terminal is only in **`…/STAT8020/Project`** (parent), Git will report **`fatal: not a git repository`**. Fix:
+
+```bash
+cd path/to/8017Group4.1
+pwd                    # should end with 8017Group4.1
+git status
+```
+
+**Stage `README.md` and Python changes together** (paths are relative to the repo root):
+
+```bash
+git add README.md
+git add src/model/synthesis/
+git status
+git commit -m "Your message"
+git push origin shung
+```
+
+- **`git add README.md` does nothing visible** → either there are **no edits** vs the last commit (save the file in your editor), or you’re editing a **different copy** of the file outside this repo.
+- **Some files “staged”, others not** → run `git add -u` to stage **all tracked** edits, or `git add <path>` for each file you want in the commit.
+
 ---
 
 ## 📂 Data and Synapse caches
@@ -276,6 +300,8 @@ uv run python src/model/synthesis/run.py --ticker 2800 --query "What are key ris
 | **`ollama` / `vllm` errors** | Services running on expected host/port. |
 | Synapse looks off | Re-run Synapse pipeline; refresh **`corpus_embeddings*.pt`** / profiles. |
 | Git push rejected — file too large | Don’t commit **`data/`**, **`corpus_embeddings*.pt`**, or **`model_output/Synthesis/finetuned/`** — keep them local or share via team storage / releases. |
+| `fatal: not a git repository` | **`cd`** into **`8017Group4.1/`** (the folder with **`.git`**). See the **Git** note under [Clone and install](#clone-and-install). |
+| Can’t add **`README.md`** / branch feels “broken” | Save the file; run **`pwd`** and **`git rev-parse --show-toplevel`** — the path must end with **`8017Group4.1`**. Then **`git add README.md src/`** and commit. |
 
 ---
 
