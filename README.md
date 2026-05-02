@@ -30,7 +30,7 @@ This project helps investors explore HK ETFs with three connected intelligence m
 |--------|------|
 | 🧬 **Financial DNA** | Feature engineering, PCA + K-Means clustering, advisory outputs (home-bias and “hidden twin” candidates). |
 | 🔗 **Synapse** | ETF text profiles from prospectuses/key facts, **`corpus_embeddings*.pt`** caches, and similarity to news/events. |
-| ✨ **Financial Synthesis** | Combines DNA + Synapse into readable answers with evidence; backends: **Transformers**, **Ollama**, or **vLLM**. |
+| ✨ **Financial Synthesis** | Combines DNA + Synapse into readable answers with evidence via **Hugging Face Transformers** (local in-process LLM). |
 
 📖 **Deeper technical write-up:** `MODEL_DETAILS.md` (repo root).
 
@@ -54,7 +54,7 @@ This project helps investors explore HK ETFs with three connected intelligence m
 |------------------------------|-----|
 | 🧪 **`model_output/Synthesis/finetuned/…`** (LoRA adapters, **optimizer states**, **multi‑GB** trainer checkpoints) | Too large for GitHub; **custom Qwen/LoRA** is optional — see [Fine-tune LoRA (optional)](#fine-tune-lora-optional). |
 
-> 💡 **TL;DR:** If you already have **`data/`** and **Synapse `corpus_embeddings*.pt`**, you’re in good shape for DNA + Synapse + the default chat (base Qwen or Ollama/vLLM). The **only** “extra” is **training your own LoRA** into `model_output/Synthesis/finetuned/…` if you want project-specific fine-tunes.
+> 💡 **TL;DR:** If you already have **`data/`** and **Synapse `corpus_embeddings*.pt`**, you’re in good shape for DNA + Synapse + the chat (**Transformers** / base **`Qwen/Qwen2.5-7B-Instruct`** by default). The **only** “extra” is **training your own LoRA** into `model_output/Synthesis/finetuned/…` if you want project-specific fine-tunes.
 
 ---
 
@@ -166,7 +166,7 @@ These are **local cache files** produced when you run the Synapse side (profiles
 
 3. **🔧 Other trainers** — any workflow that produces **Hugging Face–compatible LoRA** for `Qwen2.5-7B-Instruct` can work in principle; you’d still point outputs under `model_output/Synthesis/finetuned/…` for consistency. (The Streamlit **`transformers`** path loads **base** models by default — wiring **Peft** adapters into chat would need a small code change if you want live LoRA inference.)
 
-**If you skip LoRA:** use the chatbot with **`ollama`** or **`vllm`**, or **`transformers`** + **`Qwen/Qwen2.5-7B-Instruct`** — you still get DNA + Synapse evidence from your local **`model_output/`**.
+**If you skip LoRA:** the chatbot still runs **`transformers`** + **`Qwen/Qwen2.5-7B-Instruct`** (or another HF causal LM you configure); you still get DNA + Synapse evidence from your local **`model_output/`**.
 
 ---
 
@@ -183,15 +183,11 @@ uv run streamlit run app/hk_etf_intelligence_app.py
 | 📈 **1W Winners/Losers** | OHLCV parquet files |
 | 🔍 **ETF Screener** | `ETP_Data_Export.xlsx` |
 | 🗺️ **ETF Explorer** | OHLCV + top holdings |
-| 🤖 **AI Chatbot** | Synthesis backend + DNA/Synapse artifacts for evidence |
+| 🤖 **AI Chatbot** | **`transformers`** LLM + DNA/Synapse artifacts for evidence |
 
-### 🔌 Chatbot backends
+### 🔌 AI Chatbot (Transformers only)
 
-| Backend | When to use |
-|---------|-------------|
-| **`transformers`** | In-process local model; first reply pays load time. |
-| **`ollama`** | Local Ollama at `http://localhost:11434` |
-| **`vllm`** | vLLM HTTP API (e.g. `http://localhost:8000`) |
+The Streamlit chatbot currently supports **only** the **`transformers`** backend (Hugging Face `AutoModelForCausalLM` **in-process**). Pick a model ID or local path in the UI (default **`Qwen/Qwen2.5-7B-Instruct`**).
 
 ---
 
@@ -297,7 +293,7 @@ uv run python src/model/synthesis/run.py --ticker 2800 --query "What are key ris
 | Tabs empty / missing file errors | `data/etf/…` and `model_output/…` paths; run pipelines. |
 | **`data/ETF` vs `data/etf`** | App tries both; align names if something still fails. |
 | Chatbot slow on first message (`transformers`) | Normal — model loads once; later replies are faster. |
-| **`ollama` / `vllm` errors** | Services running on expected host/port. |
+| Chatbot import / CUDA / out-of-memory errors | Check **`transformers`** + **PyTorch** install, GPU drivers, and that the model name fits in RAM/VRAM. |
 | Synapse looks off | Re-run Synapse pipeline; refresh **`corpus_embeddings*.pt`** / profiles. |
 | Git push rejected — file too large | Don’t commit **`data/`**, **`corpus_embeddings*.pt`**, or **`model_output/Synthesis/finetuned/`** — keep them local or share via team storage / releases. |
 | `fatal: not a git repository` | **`cd`** into **`8017Group4.1/`** (the folder with **`.git`**). See the **Git** note under [Clone and install](#clone-and-install). |
