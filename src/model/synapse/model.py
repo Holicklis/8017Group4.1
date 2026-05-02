@@ -158,9 +158,38 @@ class ETFNewsEngine:
 
         df = df.copy()
         df["ticker"] = df["ticker"].astype(str).str.zfill(5)
-        df["text"] = df["profile_text"].astype(str).str.strip()
+        if "key_risks" in df.columns:
+            df["text"] = df.apply(self._build_profile_embedding_text, axis=1)
+        else:
+            df["text"] = df["profile_text"].astype(str).str.strip()
         df = df[df["text"] != ""].reset_index(drop=True)
         return df
+
+    def _build_profile_embedding_text(self, row: pd.Series) -> str:
+        ticker = str(row.get("ticker", "")).zfill(5)
+        benchmark = str(row.get("benchmark_or_index", "")).strip()
+        asset_class = str(row.get("asset_class", "")).strip()
+        geo_focus = str(row.get("geographic_focus", "")).strip()
+        key_risks = str(row.get("key_risks", "")).strip()
+        profile_text = str(row.get("profile_text", "")).strip()
+
+        parts = [f"Ticker {ticker}."]
+        if benchmark and benchmark.lower() != "nan":
+            parts.append(f"Benchmark {benchmark}.")
+        if asset_class and asset_class.lower() != "nan":
+            parts.append(f"Asset class {asset_class}.")
+        if geo_focus and geo_focus.lower() != "nan":
+            parts.append(f"Geographic focus {geo_focus}.")
+
+        if key_risks and key_risks.lower() != "nan":
+            risk_text = re.sub(r"\s+", " ", key_risks).strip()
+            parts.append(f"Risk summary: {risk_text}")
+        elif profile_text and profile_text.lower() != "nan":
+            # Legacy fallback for old profile versions.
+            compact = re.sub(r"\s+", " ", profile_text).strip()
+            parts.append(compact[:900])
+
+        return " ".join(parts).strip()
 
     def _load_sentence_corpus(self) -> pd.DataFrame:
         all_dfs: List[pd.DataFrame] = []

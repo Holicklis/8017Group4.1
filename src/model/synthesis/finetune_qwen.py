@@ -1,3 +1,5 @@
+"""Fine-tune Qwen with LoRA on ETF ChatML JSONL — expect on the order of ~10 hours on an Apple M2 Pro with 32 GB (dataset size and flags affect runtime)."""
+
 from __future__ import annotations
 
 import argparse
@@ -12,6 +14,7 @@ from torch.utils.data import Dataset
 from transformers import (
     AutoModelForCausalLM,
     AutoTokenizer,
+    PreTrainedTokenizerBase,
     Trainer,
     TrainingArguments,
 )
@@ -62,13 +65,29 @@ class ChatFineTuneDataset(Dataset):
     def __len__(self) -> int:
         return len(self.rows)
 
-    def __getitem__(self, idx: int) -> Dict[str, torch.Tensor]:
+    def __getitem__(self, idx: int) -> Dict[str, List[int]]:
         row = self.rows[idx]
         return {
-            "input_ids": torch.tensor(row.input_ids, dtype=torch.long),
-            "attention_mask": torch.tensor(row.attention_mask, dtype=torch.long),
-            "labels": torch.tensor(row.labels, dtype=torch.long),
+            "input_ids": row.input_ids,
+            "attention_mask": row.attention_mask,
+            "labels": row.labels,
         }
+
+
+class ChatDataCollator:
+    def __init__(self, tokenizer: PreTrainedTokenizerBase) -> None:
+        self.tokenizer = tokenizer
+
+    def __call__(self, features: Sequence[Dict[str, List[int]]]) -> Dict[str, torch.Tensor]:
+        inputs = [{"input_ids": f["input_ids"], "attention_mask": f["attention_mask"]} for f in features]
+        batch = self.tokenizer.pad(
+            inputs,
+            padding=True,
+            return_tensors="pt",
+        )
+        labels = [torch.tensor(f["labels"], dtype=torch.long) for f in features]
+        batch["labels"] = torch.nn.utils.rnn.pad_sequence(labels, batch_first=True, padding_value=-100)
+        return batch
 
 
 def _load_chatml_rows(path: Path) -> List[Dict[str, object]]:
@@ -104,7 +123,7 @@ def _encode_rows(
             text,
             truncation=True,
             max_length=max_length,
-            padding="max_length",
+            padding=False,
         )
         input_ids = toks["input_ids"]
         attention_mask = toks["attention_mask"]
@@ -145,12 +164,16 @@ def _load_model_tokenizer(
     lora_r: int,
     lora_alpha: int,
     lora_dropout: float,
+    prefer_fp16: bool = False,
 ):
     tokenizer = AutoTokenizer.from_pretrained(model_name, use_fast=True)
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
 
-    model = AutoModelForCausalLM.from_pretrained(model_name)
+    model_kwargs = {"low_cpu_mem_usage": True}
+    if prefer_fp16:
+        model_kwargs["torch_dtype"] = torch.float16
+    model = AutoModelForCausalLM.from_pretrained(model_name, **model_kwargs)
 
     if use_lora:
         try:
@@ -199,28 +222,35 @@ def run_finetune(
     lora_alpha: int = 32,
     lora_dropout: float = 0.05,
     max_samples: int = 0,
+    gradient_checkpointing: bool = True,
 ) -> Dict[str, object]:
     output_dir.mkdir(parents=True, exist_ok=True)
 
     rows = _load_chatml_rows(dataset_path)
     if max_samples and max_samples > 0:
         rows = rows[:max_samples]
+    has_cuda = torch.cuda.is_available()
+    has_mps = torch.backends.mps.is_available() if hasattr(torch.backends, "mps") else False
+
     model, tokenizer = _load_model_tokenizer(
         model_name=model_name,
         use_lora=use_lora,
         lora_r=lora_r,
         lora_alpha=lora_alpha,
         lora_dropout=lora_dropout,
+        prefer_fp16=has_mps and not has_cuda,
     )
+    if gradient_checkpointing:
+        model.gradient_checkpointing_enable()
+        # Reduces activation memory for checkpointed training.
+        if hasattr(model, "config"):
+            model.config.use_cache = False
 
     encoded = _encode_rows(rows=rows, tokenizer=tokenizer, max_length=max_length)
     train_rows, eval_rows = _train_val_split(encoded, eval_ratio=eval_ratio, seed=seed)
 
     train_ds = ChatFineTuneDataset(train_rows)
     eval_ds = ChatFineTuneDataset(eval_rows) if eval_rows else None
-
-    has_cuda = torch.cuda.is_available()
-    has_mps = torch.backends.mps.is_available() if hasattr(torch.backends, "mps") else False
 
     train_args = TrainingArguments(
         output_dir=str(output_dir),
@@ -238,6 +268,8 @@ def run_finetune(
         fp16=False,
         report_to=[],
         dataloader_num_workers=0,
+        dataloader_pin_memory=has_cuda,
+        gradient_checkpointing=gradient_checkpointing,
         remove_unused_columns=False,
         seed=seed,
     )
@@ -247,6 +279,7 @@ def run_finetune(
         args=train_args,
         train_dataset=train_ds,
         eval_dataset=eval_ds,
+        data_collator=ChatDataCollator(tokenizer=tokenizer),
     )
     trainer.train()
 
@@ -295,6 +328,11 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--lora-alpha", type=int, default=32)
     parser.add_argument("--lora-dropout", type=float, default=0.05)
     parser.add_argument(
+        "--no-gradient-checkpointing",
+        action="store_true",
+        help="Disable gradient checkpointing (uses more memory, may be slightly faster).",
+    )
+    parser.add_argument(
         "--max-samples",
         type=int,
         default=0,
@@ -323,5 +361,6 @@ if __name__ == "__main__":
         lora_alpha=args.lora_alpha,
         lora_dropout=args.lora_dropout,
         max_samples=args.max_samples,
+        gradient_checkpointing=not args.no_gradient_checkpointing,
     )
     print(json.dumps(result, indent=2))

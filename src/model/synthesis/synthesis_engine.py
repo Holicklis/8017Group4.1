@@ -26,8 +26,9 @@ def _normalize_ticker(ticker: object) -> str:
     text = str(ticker).strip()
     if not text or text.lower() in {"nan", "none"}:
         return ""
-    if text.isdigit():
-        return str(int(text)).zfill(4)
+    digits = re.sub(r"\D", "", text)
+    if digits:
+        return str(int(digits)).zfill(4)
     return text.upper()
 
 
@@ -107,6 +108,69 @@ def _is_dividend_query(text: str) -> bool:
 
 def _is_tracking_query(text: str) -> bool:
     return _contains_any(text, ["track", "tracked", "index", "benchmark", "objective", "追蹤", "指數", "目標"])
+
+
+def _is_news_discovery_query(text: str) -> bool:
+    return _contains_any(
+        text,
+        [
+            "news",
+            "headline",
+            "event",
+            "story",
+            "related ticker",
+            "find ticker",
+            "which ticker",
+            "資訊",
+            "新聞",
+            "事件",
+            "相關代號",
+            "找代號",
+        ],
+    )
+
+
+def _is_model1_related_query(text: str) -> bool:
+    return _contains_any(
+        text,
+        [
+            "related etf",
+            "similar etf",
+            "alternative etf",
+            "profile similar",
+            "cluster",
+            "hidden twin",
+            "home bias",
+            "相似",
+            "替代",
+            "同類",
+            "叢集",
+            "聚類",
+            "隱藏雙生",
+            "本地偏誤",
+        ],
+    )
+
+
+def _is_feature_query(text: str) -> bool:
+    return _contains_any(
+        text,
+        [
+            "feature",
+            "features",
+            "overview",
+            "summary",
+            "about this etf",
+            "tell me about",
+            "characteristic",
+            "profile",
+            "介紹",
+            "概覽",
+            "重點",
+            "特點",
+            "這隻etf",
+        ],
+    )
 
 
 def _normalize_for_match(text: str) -> str:
@@ -337,8 +401,7 @@ class SynthesisEngine:
         cleaned = re.sub(r"\s+", " ", str(answer or "").strip())
         if not cleaned:
             return ""
-        if language == "zh":
-            cleaned = re.sub(r"^根據基金文件[:：]\s*", "", cleaned)
+        cleaned = re.sub(r"^根據基金文件[:：]\s*", "", cleaned)
         chunks = [c.strip() for c in re.split(r"(?<=[\.\!\?。！？])\s+", cleaned) if c.strip()]
         concise = " ".join(chunks[:2]).strip() if chunks else cleaned
         if len(concise) <= 420:
@@ -348,6 +411,46 @@ class SynthesisEngine:
         if cut > 120:
             return concise[: cut + 1].strip()
         return concise[:420].rsplit(" ", 1)[0].strip()
+
+    @staticmethod
+    def _to_investor_plain(answer: str, language: str, max_chars: int = 240) -> str:
+        text = re.sub(r"\s+", " ", str(answer or "").strip())
+        if not text:
+            return ""
+
+        # Remove common legal boilerplate that harms readability.
+        boilerplate_patterns = [
+            r"under the section entitled [\"“][^\"”]+[\"”]",
+            r"shall be deemed to be deleted and replaced with the following[:：]?",
+            r"forms an integral part of[^\.]*",
+            r"with the prior approval of the Promoter[^\.]*",
+        ]
+        for p in boilerplate_patterns:
+            text = re.sub(p, "", text, flags=re.IGNORECASE)
+
+        if language != "zh":
+            text = text.replace("Sub-Fund", "ETF")
+            text = text.replace("The Sub -Fund", "The ETF")
+            text = text.replace("TraHK", "the ETF")
+            text = text.replace("Objective and Investment Strategy Objective", "Investment objective")
+            text = re.sub(r"\s+,", ",", text)
+            if "Quick facts" in text:
+                text = text.split("Quick facts", 1)[0].strip()
+        else:
+            text = text.replace("TraHK", "本ETF")
+
+        text = re.sub(r"\"\s*\d+\.\s*", " ", text)
+        text = re.sub(r"\(\.\s*$", "", text)
+        text = re.sub(r"\s*\(\s*$", "", text)
+        text = re.sub(r"\s*-\s*$", "", text)
+        text = re.sub(r"\s+", " ", text).strip(" -;:,")
+        if len(text) <= max_chars:
+            return text
+
+        cut = max(text.rfind(". ", 0, max_chars), text.rfind("。", 0, max_chars))
+        if cut > 80:
+            return text[: cut + 1].strip()
+        return text[:max_chars].rsplit(" ", 1)[0].strip() + "..."
 
     @staticmethod
     def _rewrite_fact_answer_concise(answer: str, language: str) -> str:
@@ -522,6 +625,7 @@ class SynthesisEngine:
                 # Skip noisy legal addendum boilerplate fragments when better options exist.
                 if _contains_any(ans, ["sub-section entitled", "forms an integral part", "addendum dated"]):
                     continue
+                ans = self._to_investor_plain(ans, language=language, max_chars=220)
                 norm = _normalize_for_match(ans)
                 if not ans or norm in seen_norm:
                     continue
@@ -533,9 +637,17 @@ class SynthesisEngine:
             if top_risk_answers:
                 if language == "zh":
                     bullets = "\n".join([f"- {a}" for a in top_risk_answers])
-                    return f"根據基金文件，主要風險包括：\n{bullets}"
+                    return (
+                        "根據基金文件，主要風險包括：\n"
+                        f"{bullets}\n"
+                        "這代表甚麼：若你已集中港股或單一主題，宜搭配不同地區或資產類別ETF分散波動。"
+                    )
                 bullets = "\n".join([f"- {a}" for a in top_risk_answers])
-                return f"Based on fund documents, the key risks include:\n{bullets}"
+                return (
+                    "Based on fund documents, the key risks include:\n"
+                    f"{bullets}\n"
+                    "What this means: if your portfolio is concentrated in one market/theme, consider adding other regions or asset classes to diversify volatility."
+                )
 
         answer = self._compact_answer(str(best_row.get("answer", "")), language=language)
         if not answer:
@@ -544,6 +656,203 @@ class SynthesisEngine:
         if language == "zh":
             return f"根據基金文件，{answer}"
         return answer
+
+    def _classify_user_intent(self, user_query: str) -> str:
+        text = user_query or ""
+        if _is_model1_related_query(text):
+            return "model1_related"
+        if _is_news_discovery_query(text):
+            return "model2_discovery"
+        if _is_feature_query(text):
+            return "etf_features"
+        if _is_fee_query(text) or _is_dividend_query(text) or _is_tracking_query(text):
+            return "factual"
+        if _is_risk_query(text):
+            return "risk_explain"
+        return "general"
+
+    def _answer_model1_related(self, ticker: str, dna_context: Dict[str, Any], language: str) -> str:
+        alts = dna_context.get("top_3_alternatives", []) or []
+        cluster_id = dna_context.get("cluster_id")
+        notes = str(dna_context.get("notes", "") or "")
+        if not alts:
+            if language == "zh":
+                if notes:
+                    return (
+                        f"目前未能提供 `{_normalize_ticker(ticker)}` 的Model 1相關ETF候選。\n"
+                        f"原因：{notes}\n"
+                        "請先確認DNA輸出（cluster/advisory parquet）是否可讀，之後即可返回同群組替代ETF。"
+                    )
+                return f"未找到 `{_normalize_ticker(ticker)}` 的相關ETF候選。請先確認DNA輸出是否完整。"
+            if notes:
+                return (
+                    f"Model 1 related-ticker lookup is currently unavailable for `{_normalize_ticker(ticker)}`.\n"
+                    f"Reason: {notes}\n"
+                    "Please verify DNA cluster/advisory parquet outputs, then retry."
+                )
+            return f"No related ETF candidates were found for `{_normalize_ticker(ticker)}`. Please verify DNA outputs."
+
+        lines = []
+        for i, alt in enumerate(alts, start=1):
+            t = str(alt.get("ticker", ""))
+            signal = str(alt.get("signal", "similar_profile"))
+            dist = alt.get("pc_distance")
+            dist_text = f"{float(dist):.4f}" if isinstance(dist, (int, float)) else "N/A"
+            lines.append((i, t, signal, dist_text))
+
+        if language == "zh":
+            body = "\n".join([f"- {i}. `{t}`（signal: {s}, distance: {d}）" for i, t, s, d in lines])
+            return (
+                f"根據Model 1（Financial DNA）聚類結果，`{_normalize_ticker(ticker)}` "
+                f"目前的cluster_id為 `{cluster_id}`。可優先參考以下相近ETF：\n{body}\n"
+                "建議：先比較費用率、資產類別及地域曝險，再決定是否替換或分散配置。"
+            )
+        body = "\n".join([f"- {i}. `{t}` (signal: {s}, distance: {d})" for i, t, s, d in lines])
+        return (
+            f"Based on Model 1 (Financial DNA), `{_normalize_ticker(ticker)}` is in cluster `{cluster_id}`. "
+            f"Closest related ETF candidates are:\n{body}\n"
+            "Practical advice: compare fee level, asset-class exposure, and geographic concentration before switching."
+        )
+
+    def _discover_related_tickers_from_synapse(self, user_query: str, top_k: int = 3) -> List[Dict[str, Any]]:
+        syn = self._load_synapse_topk().copy()
+        if syn.empty or "predicted_ticker" not in syn.columns:
+            return []
+
+        text_cols = [c for c in ["Headline", "Market_Event", "query_text", "Sector", "Source"] if c in syn.columns]
+        if not text_cols:
+            return []
+
+        q_tokens = _tokens(user_query)
+        if not q_tokens:
+            return []
+
+        syn["final_score"] = pd.to_numeric(syn.get("final_score"), errors="coerce").fillna(0.0)
+
+        def _row_score(row: pd.Series) -> float:
+            content = " ".join(str(row.get(c, "")) for c in text_cols)
+            r_tokens = _tokens(content)
+            if not r_tokens:
+                return 0.0
+            overlap = len(q_tokens & r_tokens) / max(len(q_tokens), 1)
+            return 0.65 * overlap + 0.35 * float(row.get("final_score", 0.0))
+
+        syn["query_match_score"] = syn.apply(_row_score, axis=1)
+        syn = syn[syn["predicted_ticker"].astype(str).str.len() > 0].copy()
+        if syn.empty:
+            return []
+
+        top = (
+            syn.sort_values(["query_match_score", "final_score"], ascending=[False, False])
+            .groupby("predicted_ticker", as_index=False)
+            .head(1)
+            .sort_values(["query_match_score", "final_score"], ascending=[False, False])
+            .head(top_k)
+        )
+        out: List[Dict[str, Any]] = []
+        for _, row in top.iterrows():
+            out.append(
+                {
+                    "ticker": _normalize_ticker(row.get("predicted_ticker")),
+                    "headline": str(row.get("Headline", ""))[:160],
+                    "market_event": str(row.get("Market_Event", ""))[:120],
+                    "score": float(row.get("query_match_score", 0.0)),
+                }
+            )
+        return out
+
+    def _answer_model2_discovery(self, user_query: str, language: str) -> str:
+        matches = self._discover_related_tickers_from_synapse(user_query=user_query, top_k=3)
+        if not matches:
+            if language == "zh":
+                return "未能從Model 2（Synapse）找到明確相關ETF。請提供更多新聞關鍵字、事件描述或市場主題。"
+            return "I could not find confident related ETFs from Model 2 (Synapse). Please provide more specific news/event keywords."
+
+        if language == "zh":
+            lines = []
+            for i, m in enumerate(matches, start=1):
+                lines.append(
+                    f"- {i}. `{m['ticker']}`：事件 `{m['market_event'] or 'N/A'}`；摘要 `{m['headline'] or 'N/A'}`"
+                )
+            return (
+                "根據Model 2（Synapse）語義匹配，以下ETF與你提供的資訊最相關：\n"
+                + "\n".join(lines)
+                + "\n建議：先點選其中1-2隻查看其持倉與1年走勢，再進一步比較風險與費用。"
+            )
+
+        lines = []
+        for i, m in enumerate(matches, start=1):
+            lines.append(
+                f"- {i}. `{m['ticker']}`: event `{m['market_event'] or 'N/A'}`; headline summary `{m['headline'] or 'N/A'}`"
+            )
+        return (
+            "Based on Model 2 (Synapse) semantic matching, these ETFs are most related to your information:\n"
+            + "\n".join(lines)
+            + "\nPractical next step: open 1-2 of these tickers, then compare holdings, 1Y trend, and fee profile."
+        )
+
+    def _answer_etf_features_with_advice(self, ticker: str, user_query: str, language: str) -> Optional[str]:
+        df = self._load_ticker_qa(ticker)
+        if df.empty or not {"source_tag", "answer"}.issubset(df.columns):
+            return None
+
+        if "language" in df.columns:
+            if language == "zh":
+                lang_candidates = ["zh-HK", "zh", "en"]
+            else:
+                lang_candidates = ["en", "zh-HK"]
+            lang_mask = df["language"].fillna("").astype(str).isin(lang_candidates)
+            if lang_mask.any():
+                df = df[lang_mask].copy()
+
+        want_tags = ["objective_strategy", "fees_charges", "dividend", "key_risks", "currency_counter"]
+        selected: Dict[str, str] = {}
+        for tag in want_tags:
+            sub = df[df["source_tag"].fillna("").astype(str).str.contains(tag, case=False, regex=False)]
+            if sub.empty:
+                continue
+            ans = self._compact_answer(str(sub.iloc[0]["answer"]), language=language)
+            ans = self._to_investor_plain(ans, language=language, max_chars=210)
+            if ans:
+                selected[tag] = ans
+
+        if not selected:
+            return None
+
+        if language == "zh":
+            lines = []
+            if "objective_strategy" in selected:
+                lines.append(f"- 投資目標：{selected['objective_strategy']}")
+            if "fees_charges" in selected:
+                lines.append(f"- 費用重點：{selected['fees_charges']}")
+            if "dividend" in selected:
+                lines.append(f"- 派息資訊：{selected['dividend']}")
+            if "key_risks" in selected:
+                lines.append(f"- 風險重點：{selected['key_risks']}")
+            if "currency_counter" in selected:
+                lines.append(f"- 交易櫃台/貨幣：{selected['currency_counter']}")
+            return (
+                f"`{_normalize_ticker(ticker)}` 的ETF特點如下（根據文件）：\n"
+                + "\n".join(lines)
+                + "\n\n建議組合做法：可先把此ETF作為核心或衛星倉位，再搭配不同地區/資產類別ETF做分散，避免單一市場集中。"
+            )
+
+        lines = []
+        if "objective_strategy" in selected:
+            lines.append(f"- Objective: {selected['objective_strategy']}")
+        if "fees_charges" in selected:
+            lines.append(f"- Fee profile: {selected['fees_charges']}")
+        if "dividend" in selected:
+            lines.append(f"- Dividend: {selected['dividend']}")
+        if "key_risks" in selected:
+            lines.append(f"- Risk highlights: {selected['key_risks']}")
+        if "currency_counter" in selected:
+            lines.append(f"- Trading/currency counters: {selected['currency_counter']}")
+        return (
+            f"Key ETF features for `{_normalize_ticker(ticker)}` (from fund documents):\n"
+            + "\n".join(lines)
+            + "\n\nPortfolio construction advice: treat this ETF as a core or satellite position, then add ETFs from different regions/asset classes to reduce single-market concentration."
+        )
 
     def _get_sentence_encoder(self):
         if self._sentence_encoder is not None:
@@ -576,7 +885,10 @@ class SynthesisEngine:
                 "cluster_id": None,
                 "cluster_by_perspective": {},
                 "top_3_alternatives": [],
-                "notes": "Ticker not found in DNA cluster outputs.",
+                "notes": (
+                    "Ticker missing from current DNA cluster artifacts "
+                    "(coverage gap). Do not treat this as invalid/non-existent ticker."
+                ),
             }
 
         cluster_by_perspective = {}
@@ -709,6 +1021,8 @@ class SynthesisEngine:
                 "核心原則：先回答用戶問題本身，準確、簡潔、友善。\n"
                 "不要主動推薦新ETF，也不要主動講風險；只有用戶明確問到時才提供。\n"
                 "若是事實型問題（例如ETF追蹤什麼、成分、類型），只提供事實答案與必要背景。\n"
+                "目標ETF代號由系統提供並視為有效上下文；不要自行斷言該代號『不存在』或『無效』。\n"
+                "若資料不足，請明確說明『目前本地資料不足以確認細節』，並建議查閱該ETF官方KFS/章程。\n"
                 "使用香港常用金融術語與清晰段落，避免離題。"
             )
         return (
@@ -716,6 +1030,8 @@ class SynthesisEngine:
             "Primary rule: answer the user's actual question first, clearly and politely.\n"
             "Do NOT proactively recommend other ETFs or discuss risk unless the user explicitly asks.\n"
             "For factual questions (e.g., what an ETF tracks), provide direct facts and brief context only.\n"
+            "The target ETF ticker is provided by the system and should be treated as valid context; do not claim it is invalid or non-existent.\n"
+            "If details are missing in local data, say data is currently insufficient and suggest checking official ETF KFS/prospectus.\n"
             "Use clear HK-market terminology and avoid going beyond the user intent."
         )
 
@@ -739,11 +1055,21 @@ class SynthesisEngine:
             "recommendation_allowed": recommendation_asked,
             "policy_version": PROMPT_POLICY_VERSION,
         }
+        prompt_dna_context = dict(dna_context or {})
+        notes_text = str(prompt_dna_context.get("notes", "") or "").lower()
+        if "coverage gap" in notes_text or "ticker not found" in notes_text:
+            # Do not leak artifact-coverage wording that can mislead the model into
+            # claiming the ticker is invalid; keep context neutral.
+            prompt_dna_context["notes"] = "DNA cluster artifacts unavailable for this ticker; continue with ticker facts."
         return (
             f"{header}: {user_query}\n"
             f"{ticker_label}: {ticker}\n\n"
+            "Important Guardrail:\n"
+            "- The target ticker is system-provided context and should be treated as valid.\n"
+            "- If DNA/Synapse context is missing, describe it as local-data coverage gap only.\n"
+            "- Do NOT claim the ticker is invalid, non-existent, or absent from the market/database.\n\n"
             f"Intent Rules:\n{json.dumps(intent_rules, ensure_ascii=False, indent=2)}\n\n"
-            f"{ctx_label}:\n{json.dumps(dna_context, ensure_ascii=False, indent=2)}\n\n"
+            f"{ctx_label}:\n{json.dumps(prompt_dna_context, ensure_ascii=False, indent=2)}\n\n"
             f"{syn_label}:\n{json.dumps(alerts, ensure_ascii=False, indent=2)}\n\n"
             "Please answer in an information-first, user-friendly style."
         )
@@ -836,27 +1162,12 @@ class SynthesisEngine:
         user_prompt: str,
         system_message: str,
         model_name: str,
-        max_new_tokens: int = 128,
+        max_new_tokens: int = 220,
     ) -> str:
         import torch
         from transformers import AutoModelForCausalLM, AutoTokenizer
 
-        if self._hf_model is None or self._hf_tokenizer is None:
-            self._hf_tokenizer = AutoTokenizer.from_pretrained(model_name)
-            use_cuda = torch.cuda.is_available()
-            use_mps = hasattr(torch.backends, "mps") and torch.backends.mps.is_available()
-            dtype = torch.float16 if (use_cuda or use_mps) else torch.float32
-            model_kwargs: Dict[str, Any] = {
-                "torch_dtype": dtype,
-                "low_cpu_mem_usage": True,
-            }
-            if use_cuda:
-                model_kwargs["device_map"] = "auto"
-            self._hf_model = AutoModelForCausalLM.from_pretrained(model_name, **model_kwargs)
-            if not use_cuda and use_mps:
-                self._hf_model = self._hf_model.to("mps")
-            elif not use_cuda:
-                self._hf_model = self._hf_model.to("cpu")
+        self._ensure_transformers_loaded(model_name=model_name)
 
         messages = [
             {"role": "system", "content": system_message},
@@ -904,6 +1215,39 @@ class SynthesisEngine:
                 generated = outputs[0][input_len:]
                 text = self._hf_tokenizer.decode(generated, skip_special_tokens=True).strip()
         return text
+
+    def _ensure_transformers_loaded(self, model_name: str) -> None:
+        import torch
+        from transformers import AutoModelForCausalLM, AutoTokenizer
+
+        if self._hf_model is not None and self._hf_tokenizer is not None:
+            return
+
+        self._hf_tokenizer = AutoTokenizer.from_pretrained(model_name)
+        use_cuda = torch.cuda.is_available()
+        use_mps = hasattr(torch.backends, "mps") and torch.backends.mps.is_available()
+        dtype = torch.float16 if (use_cuda or use_mps) else torch.float32
+        model_kwargs: Dict[str, Any] = {
+            "torch_dtype": dtype,
+            "low_cpu_mem_usage": True,
+        }
+        if use_cuda:
+            model_kwargs["device_map"] = "auto"
+        self._hf_model = AutoModelForCausalLM.from_pretrained(model_name, **model_kwargs)
+        if not use_cuda and use_mps:
+            self._hf_model = self._hf_model.to("mps")
+        elif not use_cuda:
+            self._hf_model = self._hf_model.to("cpu")
+
+    def warmup_model(self, backend: str = "transformers", qwen_model: str = DEFAULT_LOCAL_QWEN_MODEL) -> Dict[str, Any]:
+        """Load model/resources eagerly so first user request is responsive."""
+        if backend == "transformers":
+            self._ensure_transformers_loaded(model_name=qwen_model)
+            return {"ok": True, "backend": backend, "model": qwen_model, "warmed": True}
+        if backend in {"ollama", "vllm"}:
+            # HTTP backends run outside this process; no local model warmup needed.
+            return {"ok": True, "backend": backend, "model": qwen_model, "warmed": False}
+        raise ValueError(f"Unsupported backend: {backend}. Use one of: ollama, vllm, transformers")
 
     def _run_with_timeout(self, fn, timeout_seconds: int, *args, **kwargs):
         """
@@ -961,9 +1305,33 @@ class SynthesisEngine:
                 }
 
         language = _detect_language(user_query)
+        intent = self._classify_user_intent(user_query)
+
+        if intent == "model2_discovery":
+            model2_answer = self._answer_model2_discovery(user_query=user_query, language=language)
+            result = {
+                "response": model2_answer,
+                "data_evidence": {
+                    "ticker": _normalize_ticker(ticker),
+                    "cluster_id": None,
+                    "top_3_alternatives": [],
+                    "news_similarity_scores": [],
+                    "answer_mode": "model2_ticker_discovery",
+                    "intent": intent,
+                },
+                "language": "zh-HK" if language == "zh" else "en",
+                "backend": backend,
+                "model": qwen_model,
+                "cache_hit": False,
+            }
+            cache_obj[cache_key] = {**result, "cached_at": datetime.now().isoformat()}
+            self._save_response_cache(cache_obj)
+            return result
 
         # Fast path: allow direct QA answer even if DNA/Synapse artifacts are unavailable.
-        direct_answer = self._direct_fact_answer(ticker=ticker, user_query=user_query, language=language)
+        direct_answer = None
+        if intent in {"factual", "risk_explain", "general"}:
+            direct_answer = self._direct_fact_answer(ticker=ticker, user_query=user_query, language=language)
         if direct_answer:
             evidence_block = {
                 "ticker": _normalize_ticker(ticker),
@@ -971,6 +1339,7 @@ class SynthesisEngine:
                 "top_3_alternatives": [],
                 "news_similarity_scores": [],
                 "answer_mode": "direct_qa_lookup",
+                "intent": intent,
             }
             result = {
                 "response": direct_answer,
@@ -994,6 +1363,49 @@ class SynthesisEngine:
                 "top_3_alternatives": [],
                 "notes": f"DNA context unavailable: {exc}",
             }
+
+        if intent == "model1_related":
+            model1_answer = self._answer_model1_related(ticker=ticker, dna_context=dna_context, language=language)
+            result = {
+                "response": model1_answer,
+                "data_evidence": {
+                    "ticker": _normalize_ticker(ticker),
+                    "cluster_id": dna_context.get("cluster_id"),
+                    "top_3_alternatives": dna_context.get("top_3_alternatives", []),
+                    "news_similarity_scores": [],
+                    "answer_mode": "model1_related_tickers",
+                    "intent": intent,
+                },
+                "language": "zh-HK" if language == "zh" else "en",
+                "backend": backend,
+                "model": qwen_model,
+                "cache_hit": False,
+            }
+            cache_obj[cache_key] = {**result, "cached_at": datetime.now().isoformat()}
+            self._save_response_cache(cache_obj)
+            return result
+
+        if intent == "etf_features":
+            feature_answer = self._answer_etf_features_with_advice(ticker=ticker, user_query=user_query, language=language)
+            if feature_answer:
+                result = {
+                    "response": feature_answer,
+                    "data_evidence": {
+                        "ticker": _normalize_ticker(ticker),
+                        "cluster_id": dna_context.get("cluster_id"),
+                        "top_3_alternatives": dna_context.get("top_3_alternatives", []),
+                        "news_similarity_scores": [],
+                        "answer_mode": "etf_features_with_advice",
+                        "intent": intent,
+                    },
+                    "language": "zh-HK" if language == "zh" else "en",
+                    "backend": backend,
+                    "model": qwen_model,
+                    "cache_hit": False,
+                }
+                cache_obj[cache_key] = {**result, "cached_at": datetime.now().isoformat()}
+                self._save_response_cache(cache_obj)
+                return result
 
         try:
             synapse_alerts = self.get_synapse_alerts(ticker=ticker, query=user_query)
@@ -1058,6 +1470,7 @@ class SynthesisEngine:
             "ticker": _normalize_ticker(ticker),
             "cluster_id": dna_context.get("cluster_id"),
             "top_3_alternatives": dna_context.get("top_3_alternatives", []),
+            "intent": intent,
             "news_similarity_scores": [
                 {
                     "date": item.get("Date"),
@@ -1125,3 +1538,26 @@ def generate_synthesis(
         backend=backend,
         qwen_model=qwen_model,
     )
+
+
+def warmup_synthesis_model(
+    backend: str = "transformers",
+    qwen_model: str = DEFAULT_LOCAL_QWEN_MODEL,
+    enable_query_similarity: Optional[bool] = None,
+    enable_response_cache: Optional[bool] = None,
+) -> Dict[str, Any]:
+    """Public app helper: initialize synthesis model/resources in advance."""
+    engine = _DEFAULT_ENGINE
+    if enable_query_similarity is not None or enable_response_cache is not None:
+        variant_key = (enable_query_similarity, enable_response_cache)
+        if variant_key in _ENGINE_VARIANTS:
+            engine = _ENGINE_VARIANTS[variant_key]
+        else:
+            cfg = SynthesisConfig.default()
+            if enable_query_similarity is not None:
+                cfg.enable_query_similarity = enable_query_similarity
+            if enable_response_cache is not None:
+                cfg.enable_response_cache = enable_response_cache
+            engine = SynthesisEngine(cfg)
+            _ENGINE_VARIANTS[variant_key] = engine
+    return engine.warmup_model(backend=backend, qwen_model=qwen_model)
