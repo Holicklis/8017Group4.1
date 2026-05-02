@@ -136,6 +136,8 @@ These are **local cache files** produced when you run the Synapse side (profiles
      --max-length 1024
    ```
 
+   ⏱️ **Ballpark:** on an **Apple M2 Pro with 32 GB** RAM, a typical `finetune_qwen.py` run is on the order of **~10 hours** (varies with dataset size and flags — see the top of `src/model/synthesis/finetune_qwen.py`).
+
 2. **☁️ Cloud GPU** — if your laptop is too small, run the same commands on **Google Colab**, **Kaggle Notebooks**, **Lambda / RunPod / vast.ai**, etc.: clone repo, upload `data/` + generated JSONL, run `finetune_qwen.py`, download **`model_output/Synthesis/finetuned/`** zip back to your machine.
 
 3. **🔧 Other trainers** — any workflow that produces **Hugging Face–compatible LoRA** for `Qwen2.5-7B-Instruct` can work in principle; you’d still point outputs under `model_output/Synthesis/finetuned/…` for consistency. (The Streamlit **`transformers`** path loads **base** models by default — wiring **Peft** adapters into chat would need a small code change if you want live LoRA inference.)
