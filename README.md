@@ -41,6 +41,8 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 uv sync
 ```
 
+**Git LFS (large weights / checkpoints):** Install Git LFS once per machine (`brew install git-lfs` on macOS), then run `git lfs install` in this repo. After cloning, run `git lfs pull` so `*.pt`, `*.safetensors`, and `*.joblib` pointer files download real binaries. GitHub enforces [LFS bandwidth and storage quotas](https://docs.github.com/en/repositories/working-with-files/managing-large-files/about-git-large-file-storage).
+
 ### 2) ▶️ Launch the app
 ```bash
 uv run streamlit run app/hk_etf_intelligence_app.py
